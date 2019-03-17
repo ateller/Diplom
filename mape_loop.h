@@ -18,7 +18,7 @@ public:
     QList<to_execute> ex_plan;
     void plan();
     void execute();
-    void add_device(device* pointer, int id);
+    int add_device(device* pointer);
     knowledge k;
     int indexof(sensor*);
     int indexof(effector*);

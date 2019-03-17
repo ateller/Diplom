@@ -18,10 +18,11 @@ class knowledge: public QObject
 {
 Q_OBJECT
 public:
+    int id_counter;
     int distance();
     int distance(QList<parameter> one, QList <parameter> two);
     knowledge();
-    void add(device* s, int id);
+    int add(device* s);
     QList<record> env_model;
     QList<record> sys_model;
     void upd();
@@ -32,6 +33,7 @@ public:
     int indexof(int);
     void save(QFile *f);
     void save_record (record, QDataStream *);
+    record import_record (QDataStream*);
     int import_from_file(QFile* f);
     int loops_counter;
 public slots:

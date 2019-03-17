@@ -58,8 +58,6 @@ control::control(QWidget *parent) :
     connect(&w, SIGNAL(loop(int)), SLOT(loop(int)));
     ui->componentsListScrollArea->setLayout(new QVBoxLayout);
 
-    id_counter = 1;
-
     file_path.clear();
 }
 
@@ -75,22 +73,15 @@ void control::add_record()
 
     device* temp;
     temp = new_device(type);
-    temp->name = qobject_cast<QAction*>(sender())->text() + " " + QString::number(id_counter);
+    temp->name = qobject_cast<QAction*>(sender())->text() + " " + QString::number(manager.k.id_counter);
+
     //Создаем объект и даем ему имя
 
-    int id;
-
-    if(qobject_cast<effector*>(temp)) id = id_counter;
-    else id = - id_counter;
-
-    add_dev_widget(temp, id);
-
-    manager.add_device(temp, id);
-    id_counter++;
+    add_dev_widget(temp, manager.add_device(temp));
 }
 
 void control::add_dev_widget(device* temp, int id)
-{
+{   
     QWidget* dev_widget = new QWidget();
     //И виджет
 

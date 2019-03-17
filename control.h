@@ -36,7 +36,6 @@ private:
     imitation i; //Имитация. Понятно
     QString file_path;
 
-    int id_counter;
     void add_dev_widget(device*, int id);
     void add_rule_widget(QVBoxLayout* rules_layout, int i);
     void save();

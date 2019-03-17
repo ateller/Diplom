@@ -3,14 +3,19 @@
 knowledge::knowledge()
 {
     loops_counter = 0;
+    id_counter = 1;
 }
 
-void knowledge::add(device *s, int id)
+int knowledge::add(device *s)
 {
     record temp;
     parameter temp_p;
     temp.pointer = s;
-    temp.dev.id = id;
+
+    if(s->get_type() < 0) temp.dev.id = -id_counter;
+    else temp.dev.id = id_counter;
+    id_counter++;
+
     temp.names = s->get_names();
     temp.dev.par = s->get_list();
     QList <bool> c = s->get_changeables();
@@ -23,11 +28,12 @@ void knowledge::add(device *s, int id)
         temp_g.not_care = 0;
         temp.goal_model += temp_g;
     }
-    if (id < 0)
+    if (temp.dev.id < 0)
         env_model += temp;
     else
         sys_model += temp;
-    emit added(id);
+    emit added(temp.dev.id);
+    return temp.dev.id;
 }
 
 void knowledge::update_goal(int id, int par, int new_val)
@@ -78,7 +84,7 @@ device* knowledge::get_device(int id)
                 return temp.pointer;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 int knowledge::indexof(effector *e)
@@ -172,7 +178,6 @@ void knowledge::save(QFile* f)
 void knowledge::save_record(record temp, QDataStream* str)
 {
     *str << temp.pointer->get_type();
-    *str << temp.pointer->name.size();
     *str << temp.pointer->name;
 
     *str << temp.dev.par.size();
@@ -201,7 +206,109 @@ void knowledge::save_record(record temp, QDataStream* str)
 
 int knowledge::import_from_file(QFile* f)
 {
+    QDataStream str(f);
+    str >> loops_counter;
+
+    int n;
+
+    str >> n;
+
+    for (int i = 0; i < n; i++) {
+        if (f->atEnd()) return 1;
+        env_model += import_record(&str);
+    }
+
+    str >> n;
+
+    for (int i = 0; i < n; i++) {
+        if (f->atEnd()) return 1;
+        sys_model += import_record(&str);
+
+        int k;
+
+        if (f->atEnd()) return 1;
+
+        str >> k;
+        for (int j = 0; j < k; k++) {
+            rule r;
+
+            int m;
+            str >> m; // .pre.size
+            for (int l = 0; l < m; l++) {
+                condition c;
+                str >> c.p.type;
+                str >> c.p.index;
+                str >> c.p.value;
+                str >> c.dev_id;
+                r.pre.append(c);
+            }
+
+            str >> m; //.operation.size
+            for (int l = 0; l < m; l++) {
+                parameter o;
+                str >> o.type;
+                str >> o.index;
+                str >> o.value;
+                r.operation.append(o);
+            }
+
+            str >> r.timer;
+            str >> r.period;
+
+            qobject_cast <effector*>(sys_model.back().pointer)->add_rule(r);
+        }
+    }
     return 0;
+}
+
+record knowledge::import_record(QDataStream* str)
+{
+    record temp;
+    int type;
+    *str >> type;
+
+    switch (type) {
+    case THERMOMETER:
+        temp.pointer = new thermometer;
+        break;
+    }
+
+    temp.dev.id = -id_counter;
+    id_counter++;
+
+    *str >> temp.pointer->name;
+
+    temp.names = temp.pointer->get_names();
+
+    int k;
+    *str >> k;
+    for (int j = 0; j < k; j++) {
+        parameter p;
+        *str >> p.index;
+        *str >> p.type;
+        *str >> p.value;
+        temp.dev.par.append(p);
+    }
+
+    *str >> k;
+
+    for (int j = 0; j < k; j++) {
+        goal g;
+        *str >> g.index;
+        *str >> g.value;
+        *str >> g.not_care;
+        temp.goal_model.append(g);
+    }
+
+    *str >> k;
+
+    for (int j = 0; j < k; j++) {
+        history_value h;
+        *str >> h.value;
+        *str >> h.static_period;
+        temp.history.append(h);
+    }
+    return temp;
 }
 
 int knowledge::distance()

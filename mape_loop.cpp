@@ -21,10 +21,11 @@ device* new_device(int type)
     }
 }
 
-void mape_loop::add_device(device *pointer, int id)
+int mape_loop::add_device(device *pointer)
 {
-    k.add(pointer, id);
+    int id = k.add(pointer);
     connect(this, SIGNAL(system_update()), pointer, SLOT(update()));
+    return id;
 }
 
 int mape_loop::indexof(sensor* s)

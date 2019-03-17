@@ -10,9 +10,11 @@
 #define PERCENT 2
 #define AREA 3
 
-#define THERMOMETER 1
+#define THERMOMETER -1
 #define HEATER 2
 #define WINDOW 3
+
+//Типы и id сенсоров всегда отрицательные, эффекторов - положительные
 
 //Объявлена всякаяя абстрактность для девайсов
 

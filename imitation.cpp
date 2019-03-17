@@ -14,25 +14,25 @@ imitation::imitation()
     QDoubleSpinBox* s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(temperature));
     s->setProperty("index", QVariant(0));
-    connect(s, SIGNAL(valueChanged()), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
     l->addRow("Temperature", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(humidity));
     s->setProperty("index", QVariant(1));
-    connect(s, SIGNAL(valueChanged()), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
     l->addRow("Humidity", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(out_t));
     s->setProperty("index", QVariant(2));
-    connect(s, SIGNAL(valueChanged()), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
     l->addRow("Outdoor temperature", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(v));
     s->setProperty("index", QVariant(3));
-    connect(s, SIGNAL(valueChanged()), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
     l->addRow("Room volume", s);
 
     i_control->setFixedSize(300, i_control->sizeHint().height());

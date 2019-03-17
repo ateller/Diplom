@@ -74,6 +74,11 @@ void heater::exec_rule(QList<parameter> operation)
     }
 }
 
+int heater::get_type()
+{
+    return HEATER;
+}
+
 int heater::effect()
 {
     if(enabled)
@@ -150,6 +155,11 @@ void window::exec_rule(QList<parameter> operation)
         percent_opened = 0;
     if(percent_opened > 100)
         percent_opened = 50;
+}
+
+int window::get_type()
+{
+    return WINDOW;
 }
 
 float window::effect()

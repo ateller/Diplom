@@ -18,6 +18,7 @@ public:
     void to_be_controlled(int p, int new_val);
     QList<QString> get_names();
     QList<bool> get_changeables();
+    int get_type();
     void sense(int t);
 private:
     int temperature;

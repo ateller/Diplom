@@ -40,3 +40,8 @@ QList<bool> thermometer::get_changeables()
     l.append(true);
     return l;
 }
+
+int thermometer::get_type()
+{
+    return THERMOMETER;
+}

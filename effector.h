@@ -28,6 +28,7 @@ public:
     QList<bool> get_changeables();
     void to_be_controlled(int p, int new_val);
     void exec_rule(QList<parameter> operation);
+    int get_type();
     int effect();
 private:
     int flow_t;
@@ -45,6 +46,7 @@ public:
     QList<bool> get_changeables();
     void to_be_controlled(int p, int new_val);
     void exec_rule(QList<parameter> operation);
+    int get_type();
     float effect();
 private:
     float size;

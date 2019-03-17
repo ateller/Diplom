@@ -31,6 +31,7 @@ public:
     int indexof(effector* e);
     int indexof(int);
     void save(QFile *f);
+    void save_record (record, QDataStream *);
     int import_from_file(QFile* f);
     int loops_counter;
 public slots:

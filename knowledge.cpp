@@ -130,7 +130,81 @@ int knowledge::indexof(int id)
 
 void knowledge::save(QFile* f)
 {
+    QByteArray arr;
+    QDataStream str(&arr, QIODevice::WriteOnly);
 
+    str << loops_counter;
+    str << env_model.size();
+    f->write(arr);
+
+    foreach(record temp, env_model)
+    {
+        arr.clear();
+        save_record(temp, &str);
+        f->write(arr);
+    }
+
+    arr.clear();
+    str << sys_model.size();
+    f->write(arr);
+
+    foreach(record temp, sys_model)
+    {
+        arr.clear();
+        save_record(temp, &str);
+        str << qobject_cast <effector*> (temp.pointer)->ruleset.size();
+        foreach(rule temp_rule, qobject_cast <effector*> (temp.pointer)->ruleset)
+        {
+            str << temp_rule.pre.size();
+            foreach (condition temp_c, temp_rule.pre)
+            {
+                str << temp_c.p.type;
+                str << temp_c.p.index;
+                str << temp_c.p.value;
+                str << temp_c.dev_id;
+            }
+            str << temp_rule.operation.size();
+            foreach (parameter temp_o, temp_rule.operation)
+            {
+                str << temp_o.type;
+                str << temp_o.index;
+                str << temp_o.value;
+            }
+            str << temp_rule.timer;
+            str << temp_rule.period;
+        }
+        f->write(arr);
+    }
+}
+
+void knowledge::save_record(record temp, QDataStream* str)
+{
+    *str << temp.pointer->get_type();
+    *str << temp.pointer->name.size();
+    *str << temp.pointer->name;
+
+    *str << temp.dev.par.size();
+    foreach(parameter temp_p, temp.dev.par)
+    {
+        *str << temp_p.index;
+        *str << temp_p.type;
+        *str << temp_p.value;
+    }
+
+    *str << temp.goal_model.size();
+    foreach (goal temp_g, temp.goal_model)
+    {
+        *str << temp_g.index;
+        *str << temp_g.value;
+        *str << temp_g.not_care;
+    }
+
+    *str << temp.history.size();
+    foreach (history_value temp_h, temp.history)
+    {
+        *str << temp_h.value;
+        *str << temp_h.static_period;
+    }
 }
 
 int knowledge::import_from_file(QFile* f)

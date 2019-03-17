@@ -10,6 +10,10 @@
 #define PERCENT 2
 #define AREA 3
 
+#define THERMOMETER 1
+#define HEATER 2
+#define WINDOW 3
+
 //Объявлена всякаяя абстрактность для девайсов
 
 class device;
@@ -25,6 +29,7 @@ public:
     QList<parameter> get_list();
     virtual QList<QString> get_names() = 0;
     virtual QList<bool> get_changeables() = 0;
+    virtual int get_type() = 0;
     QString name;
     bool broken = 0;
     virtual void to_be_controlled(int p, int new_val) = 0;

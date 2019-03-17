@@ -130,27 +130,20 @@ int knowledge::indexof(int id)
 
 void knowledge::save(QFile* f)
 {
-    QByteArray arr;
-    QDataStream str(&arr, QIODevice::WriteOnly);
+    QDataStream str(f);
 
     str << loops_counter;
     str << env_model.size();
-    f->write(arr);
 
     foreach(record temp, env_model)
     {
-        arr.clear();
         save_record(temp, &str);
-        f->write(arr);
     }
 
-    arr.clear();
     str << sys_model.size();
-    f->write(arr);
 
     foreach(record temp, sys_model)
     {
-        arr.clear();
         save_record(temp, &str);
         str << qobject_cast <effector*> (temp.pointer)->ruleset.size();
         foreach(rule temp_rule, qobject_cast <effector*> (temp.pointer)->ruleset)
@@ -173,7 +166,6 @@ void knowledge::save(QFile* f)
             str << temp_rule.timer;
             str << temp_rule.period;
         }
-        f->write(arr);
     }
 }
 

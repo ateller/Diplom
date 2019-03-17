@@ -17,7 +17,7 @@ device* new_device(int type)
     case 3:
         return new window;
     default:
-        return NULL;
+        return nullptr;
     }
 }
 

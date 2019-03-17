@@ -28,6 +28,9 @@ control::control(QWidget *parent) :
 
     m->addMenu(file);
     m->addMenu(add);
+    QAction* imit_edit = m->addAction("Edit imitation parametres");
+    connect(imit_edit, SIGNAL(triggered()), i.get_ctrl_pointer(), SLOT(show()));
+
     QAction* start = m->addAction("Start");
 
     connect(start, SIGNAL(triggered()), &w, SLOT(show()));
@@ -374,7 +377,7 @@ void control::upd_goal(int id)
     }
     //Для каждого параметра создаем горизонтальный лэйаут с названием, значением и галочкой
 
-    qobject_cast<QMenuBar*>(layout()->menuBar())->actions()[2]->setEnabled(1);
+    qobject_cast<QMenuBar*>(layout()->menuBar())->actions()[3]->setEnabled(1);
 }
 
 /*void control::change_goal(QString val)

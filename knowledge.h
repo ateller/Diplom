@@ -11,8 +11,9 @@
 
 struct dev_parametres{int id; QList<parameter> par;};
 struct goal{int index; int value; bool not_care;};
-struct history_value {int value; int static_period;};
-struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList <history_value> history;};
+struct history_value {int value; int cycle_number;};
+struct history{int index; QList<history_value> series;};
+struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList<history>histories;};
 
 class knowledge: public QObject
 {
@@ -41,6 +42,8 @@ public slots:
     void update_goal(int id, int par, int new_val);
 signals:
     void added(int);
+private:
+    void upd_history(record);
 };
 
 #endif // KNOWLEDGE_H

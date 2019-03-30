@@ -36,12 +36,25 @@ int knowledge::add(device *s)
     foreach(temp_p, temp.dev.par)
     {
         if (!c[temp_p.index]) continue;
+
+        history h;
+        history_value h_v;
+
+        h_v.cycle_number = loops_counter;
+        h_v.value = temp_p.value;
+
+        h.index = temp_p.index;
+        h.series.append(h_v);
+
+        temp.histories.append(h);
+
         goal temp_g;
         temp_g.value = temp_p.value;
         temp_g.index = temp_p.index;
         temp_g.not_care = 0;
         temp.goal_model += temp_g;
     }
+
     if (temp.dev.id < 0)
         env_model += temp;
     else
@@ -58,6 +71,21 @@ void knowledge::update_goal(int id, int par, int new_val)
         sys_model[indexof(id)].goal_model[par].value = new_val;
 }
 
+void knowledge::upd_history(record temp)
+{
+    QList<history>::iterator j = (temp).histories.begin();
+    for(; j != (temp).histories.end(); j++)
+    {
+        if((*j).series.back().value == (temp).dev.par[(*j).index].value) continue;
+        else {
+            history_value h_v;
+            h_v.cycle_number = loops_counter;
+            h_v.value = (temp).dev.par[(*j).index].value;
+            (*j).series.append(h_v);
+        }
+    }
+}
+
 void knowledge::goal_ignore(int id, int par, bool not_care)
 {
     if (id < 0)
@@ -70,14 +98,17 @@ void knowledge::upd()
 {
     loops_counter++;
     QList<record>::iterator i = env_model.begin();
+    QList<QList<history_value>>::iterator t;
     for(; i != env_model.end(); i++)
     {
         (*i).dev.par = (*i).pointer->get_list();
+        upd_history(*i);
     }
     i = sys_model.begin();
     for(; i != sys_model.end(); i++)
     {
         (*i).dev.par = (*i).pointer->get_list();
+        upd_history(*i);
     }
 }
 
@@ -210,11 +241,17 @@ void knowledge::save_record(record temp, QDataStream* str)
         *str << temp_g.not_care;
     }
 
-    *str << temp.history.size();
-    foreach (history_value temp_h, temp.history)
+    *str << temp.histories.size();
+
+    foreach(history temp_h, temp.histories)
     {
-        *str << temp_h.value;
-        *str << temp_h.static_period;
+        *str << temp_h.index;
+        *str << temp_h.series.size();
+        foreach (history_value h_v, temp_h.series)
+        {
+            *str << h_v.value;
+            *str << h_v.cycle_number;
+        }
     }
 }
 
@@ -322,12 +359,26 @@ record knowledge::import_record(QDataStream* str)
 
     *str >> k;
 
-    for (int j = 0; j < k; j++) {
-        history_value h;
-        *str >> h.value;
-        *str >> h.static_period;
-        temp.history.append(h);
+    for(int j = 0; j < k; j++)
+    {
+        history temp_h;
+        *str >> temp_h.index;
+
+        int m;
+        *str >> m;
+
+        for(int l = 0; l < m; l++)
+        {
+            history_value h_v;
+            *str >> h_v.value;
+            *str >> h_v.cycle_number;
+            temp_h.series.append(h_v);
+        }
+
+        temp.histories.append(temp_h);
+
     }
+
     return temp;
 }
 

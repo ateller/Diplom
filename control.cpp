@@ -294,7 +294,7 @@ void control::upd_goal(int id)
     //Лэйаут куда будем добавлять
 
     if(id > 0) {
-        record r = manager.k->sys_model.back();
+        record r = manager.k->sys_model[manager.k->indexof(id)];
         to_upd = r.goal_model;
         names = r.names;
         name = r.pointer->name;
@@ -304,7 +304,7 @@ void control::upd_goal(int id)
         l = qobject_cast<QVBoxLayout*>(ui->sys_area->layout());
     }
     else {
-        record r = manager.k->env_model.back();
+        record r = manager.k->env_model[manager.k->indexof(id)];
         to_upd = r.goal_model;
         names = r.names;
         name = r.pointer->name;
@@ -648,14 +648,17 @@ void control::delete_all_dev_widgets()
    delete ui->componentsListScrollArea;
    ui->componentsListScrollArea = new QWidget;
    ui->componentsListScrollArea->setLayout(new QVBoxLayout);
+   ui->componentsScrollArea->setWidget(ui->componentsListScrollArea);
 
    delete ui->sys_area;
    ui->sys_area = new QWidget;
    ui->sys_area->setLayout(new QVBoxLayout);
+   ui->scrollArea_2->setWidget(ui->sys_area);
 
    delete ui->env_area;
    ui->env_area = new QWidget;
    ui->env_area->setLayout(new QVBoxLayout);
+   ui->scrollArea->setWidget(ui->env_area);
 }
 
 void control::create_all_dev_widgets()

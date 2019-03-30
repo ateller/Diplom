@@ -280,14 +280,20 @@ record knowledge::import_record(QDataStream* str)
     record temp;
     int type;
     *str >> type;
-
     switch (type) {
     case THERMOMETER:
         temp.pointer = new thermometer;
+        temp.dev.id = -id_counter;
+        break;
+    case HEATER:
+        temp.pointer = new heater;
+        temp.dev.id = id_counter;
+        break;
+    case WINDOW:
+        temp.pointer = new window;
+        temp.dev.id = id_counter;
         break;
     }
-
-    temp.dev.id = -id_counter;
     id_counter++;
 
     *str >> temp.pointer->name;

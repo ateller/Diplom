@@ -577,6 +577,8 @@ void control::open_file()
                     i.set(i_arr);
                     f->close();
                     delete f;
+                    delete_all_dev_widgets();
+                    create_all_dev_widgets();
                     return;
                 }
             }
@@ -639,4 +641,43 @@ void control::save()
         delete error;
     }
 
+}
+
+void control::delete_all_dev_widgets()
+{
+   delete ui->componentsListScrollArea;
+   ui->componentsListScrollArea = new QWidget;
+   ui->componentsListScrollArea->setLayout(new QVBoxLayout);
+
+   delete ui->sys_area;
+   ui->sys_area = new QWidget;
+   ui->sys_area->setLayout(new QVBoxLayout);
+
+   delete ui->env_area;
+   ui->env_area = new QWidget;
+   ui->env_area->setLayout(new QVBoxLayout);
+}
+
+void control::create_all_dev_widgets()
+{
+    int i = 0;;
+    foreach(record temp, manager.k->env_model)
+    {
+        add_dev_widget(temp.pointer, temp.dev.id);
+        upd_goal(temp.dev.id);
+        i++;
+    }
+    foreach(record temp, manager.k->sys_model)
+    {
+        add_dev_widget(temp.pointer, temp.dev.id);
+        upd_goal(temp.dev.id);
+
+        int j = 0;
+        foreach(rule temp_r, qobject_cast<effector*>(temp.pointer)->ruleset)
+        {
+            add_rule_widget(qobject_cast<QVBoxLayout*>(ui->componentsListScrollArea->layout()->itemAt(i)->widget()->layout()->itemAt(3)->widget()->layout()), j);
+            j++;
+        }
+        i++;
+    }
 }

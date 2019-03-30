@@ -22,6 +22,7 @@ public:
     int distance();
     int distance(QList<parameter> one, QList <parameter> two);
     knowledge();
+    ~knowledge();
     int add(device* s);
     QList<record> env_model;
     QList<record> sys_model;

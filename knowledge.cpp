@@ -6,6 +6,20 @@ knowledge::knowledge()
     id_counter = 1;
 }
 
+knowledge::~knowledge()
+{
+    QList<record>::iterator i = env_model.begin();
+    for(; i != env_model.end(); i++)
+    {
+        delete (*i).pointer;
+    }
+    i = sys_model.begin();
+    for(; i != sys_model.end(); i++)
+    {
+        delete (*i).pointer;
+    }
+}
+
 int knowledge::add(device *s)
 {
     record temp;

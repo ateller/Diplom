@@ -19,13 +19,14 @@ public:
     void plan();
     void execute();
     int add_device(device* pointer);
-    knowledge k;
+    knowledge* k;
     int indexof(sensor*);
     int indexof(effector*);
     int indexof(int);
     int dist;
     int tolerance;
     bool must_adapt;
+    int import_knowledge(QFile *f);
 private:
 signals:
     void system_update();

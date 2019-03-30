@@ -4,6 +4,7 @@ mape_loop::mape_loop()
 {
     tolerance = 3;
     must_adapt = false;
+    k = new knowledge;
 }
 
 device* new_device(int type)
@@ -23,35 +24,35 @@ device* new_device(int type)
 
 int mape_loop::add_device(device *pointer)
 {
-    int id = k.add(pointer);
+    int id = k->add(pointer);
     connect(this, SIGNAL(system_update()), pointer, SLOT(update()));
     return id;
 }
 
 int mape_loop::indexof(sensor* s)
 {
-    return k.indexof(s);
+    return k->indexof(s);
 }
 int mape_loop::indexof(effector* e)
 {
-    return k.indexof(e);
+    return k->indexof(e);
 }
 
 int mape_loop::indexof(int id)
 {
-    return k.indexof(id);
+    return k->indexof(id);
 }
 
 void mape_loop::monitor()
 {
     emit system_update();
-    k.upd();
+    k->upd();
     emit monitor_completed();
 }
 
 void mape_loop::analysis()
 {
-    dist = k.distance();
+    dist = k->distance();
     if(dist>tolerance)
         must_adapt = true;
     else
@@ -63,7 +64,7 @@ void mape_loop::plan()
 {
     ex_plan.clear();
     record rec;
-    foreach(rec, k.sys_model)
+    foreach(rec, k->sys_model)
     {
         effector* temp = qobject_cast<effector*> (rec.pointer);
         rule temp_r;
@@ -76,9 +77,9 @@ void mape_loop::plan()
             {
                 parameter model;
                 if(temp_c.dev_id > 0)
-                    model = k.sys_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
+                    model = k->sys_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
                 else
-                    model = k.env_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
+                    model = k->env_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
                 if(model.type == ON_OFF) {
                     if(model.value != temp_c.p.value){
                         add = false;
@@ -142,4 +143,20 @@ void mape_loop::loop()
         plan();
         execute();
     }
+}
+
+int mape_loop::import_knowledge(QFile *f)
+{
+    knowledge* n = new knowledge;
+    if (n->import_from_file(f) == 0)
+    {
+        delete k;
+        k = n;
+        return 0;
+    }
+    else {
+        delete n;
+        return 1;
+    }
+
 }

@@ -323,8 +323,8 @@ int knowledge::distance()
         {
             if(!temp.not_care) {
                 parameter p = temp_comp.dev.par[temp.index];
-                switch (p.type) {
                 int delta_t, delta_a, delta_p;
+                switch (p.type) {
                 case TEMPERATURE:
                     delta_t = temp.value - p.value;
                     if(delta_t < 0) delta_t = - delta_t;
@@ -334,6 +334,7 @@ int knowledge::distance()
                 case ON_OFF:
                     if(temp.value != p.value)
                         sum+=100;
+                    break;
                 case PERCENT:
                     delta_p = temp.value - p.value;
                     if(delta_p < 0) delta_p = - delta_p;
@@ -357,8 +358,8 @@ int knowledge::distance()
         {
             if(!temp.not_care) {
                 parameter p = temp_comp.dev.par[temp.index];
-                switch (p.type) {
                 int delta_t, delta_a, delta_p;
+                switch (p.type) {
                 case TEMPERATURE:
                     delta_t = temp.value - p.value;
                     if(delta_t < 0) delta_t = - delta_t;
@@ -368,6 +369,7 @@ int knowledge::distance()
                 case ON_OFF:
                     if(temp.value != p.value)
                         sum+=100;
+                    break;
                 case PERCENT:
                     delta_p = temp.value - p.value;
                     if(delta_p < 0) delta_p = - delta_p;

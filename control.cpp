@@ -51,7 +51,7 @@ control::control(QWidget *parent) :
     //connect(ui->buttonGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(add_record(QAbstractButton*)));
     //Кнопки добавления компонентов
 
-    connect(&manager.k, SIGNAL(added(int)), SLOT(upd_goal(int)));
+    connect(manager.k, SIGNAL(added(int)), SLOT(upd_goal(int)));
 
     w.set(&manager);
 
@@ -73,7 +73,7 @@ void control::add_record()
 
     device* temp;
     temp = new_device(type);
-    temp->name = qobject_cast<QAction*>(sender())->text() + " " + QString::number(manager.k.id_counter);
+    temp->name = qobject_cast<QAction*>(sender())->text() + " " + QString::number(manager.k->id_counter);
 
     //Создаем объект и даем ему имя
 
@@ -205,7 +205,7 @@ void control::add_dev_widget(device* temp, int id)
     //Девайс виджет, который это вызвал
     int i = par->property("Par_index").value<int>();
     //Номер параметра, указанный в динамическом свойстве строки
-    device* to_control = manager.k.get_device(comp->property("id").value<int>());
+    device* to_control = manager.k->get_device(comp->property("id").value<int>());
     //Найти девайс по id
     to_control->to_be_controlled(i,new_val);
     //Поихали
@@ -218,7 +218,7 @@ void control::control_device(int new_val)
     //Девайс виджет, который это вызвал
     int i = par->property("Par_index").value<int>();
     //Номер параметра, указанный в динамическом свойстве
-    device* to_control = manager.k.get_device(comp->property("id").value<int>());
+    device* to_control = manager.k->get_device(comp->property("id").value<int>());
     //Найти девайс по id
     to_control->to_be_controlled(i,new_val);
     //Поихали
@@ -231,7 +231,7 @@ void control::control_device(bool new_val)
     //Девайс виджет, который это вызвал
     int i = par->property("Par_index").value<int>();
     //Номер параметра, указанный в динамическом свойстве
-    device* to_control = manager.k.get_device(comp->property("id").value<int>());
+    device* to_control = manager.k->get_device(comp->property("id").value<int>());
     //Найти девайс по id
     to_control->to_be_controlled(i,new_val);
     //Поихали
@@ -245,7 +245,7 @@ void control::edit_name(QString new_name)
     int id = comp->property("id").value<int>();
     //Запоминаем его id
 
-    device* component = manager.k.get_device(comp->property("id").value<int>());
+    device* component = manager.k->get_device(comp->property("id").value<int>());
     component->name = new_name;
     //Сменили имя объекту
 
@@ -294,7 +294,7 @@ void control::upd_goal(int id)
     //Лэйаут куда будем добавлять
 
     if(id > 0) {
-        record r = manager.k.sys_model.back();
+        record r = manager.k->sys_model.back();
         to_upd = r.goal_model;
         names = r.names;
         name = r.pointer->name;
@@ -304,7 +304,7 @@ void control::upd_goal(int id)
         l = qobject_cast<QVBoxLayout*>(ui->sys_area->layout());
     }
     else {
-        record r = manager.k.env_model.back();
+        record r = manager.k->env_model.back();
         to_upd = r.goal_model;
         names = r.names;
         name = r.pointer->name;
@@ -375,42 +375,42 @@ void control::upd_goal(int id)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QLineEdit*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k.update_goal(id,i,val);
+    manager.k->update_goal(id,i,val);
 }*/
 
 void control::change_goal(int val)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QWidget*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k.update_goal(id,i,val);
+    manager.k->update_goal(id,i,val);
 }
 
 void control::change_goal(bool val)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QWidget*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k.update_goal(id,i,val);
+    manager.k->update_goal(id,i,val);
 }
 
 void control::goal_ignore(bool not_care)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QCheckBox*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k.goal_ignore(id,i,not_care);
+    manager.k->goal_ignore(id,i,not_care);
 }
 
 void control::add_rule()
 {
     QWidget* dev_w = qobject_cast<QPushButton*>(sender())->parentWidget();
     int id = dev_w->property("id").value<int>();
-    effector* temp = qobject_cast<effector*>(manager.k.get_device(id));
+    effector* temp = qobject_cast<effector*>(manager.k->get_device(id));
     //Находим id и запоминаем девайс
 
     int index = manager.indexof(id);
     //Узнаем его индекс
 
     rule_editing *edit = new rule_editing;    
-    edit->init(&manager.k, index);
+    edit->init(manager.k, index);
     edit->show();
     //Открываем окно
 
@@ -461,7 +461,7 @@ void control::add_rule_widget(QVBoxLayout* rules_layout, int i)
 
 void control::show_rule()
 {
-    effector* temp = qobject_cast<effector*>(manager.k.get_device(sender()->parent()->parent()->property("id").value<int>()));
+    effector* temp = qobject_cast<effector*>(manager.k->get_device(sender()->parent()->parent()->property("id").value<int>()));
 
     int i = sender()->property("Rule_index").value<int>();
     rule r = temp->ruleset[i];
@@ -472,7 +472,7 @@ void control::show_rule()
 
     text.append("\nPrecondition:\n\n");
     foreach (condition temp_c, r.pre) {
-        device* temp_d = manager.k.get_device(temp_c.dev_id);
+        device* temp_d = manager.k->get_device(temp_c.dev_id);
         text.append(" " + temp_d->get_names()[temp_c.p.index] + " of " + temp_d->name);
         switch (temp_c.p.type) {
         case EQUAL:
@@ -513,7 +513,7 @@ void control::show_rule()
 void control::delete_rule()
 {
     QWidget* dev_rules = qobject_cast<QWidget*>(sender()->parent());
-    effector* dev = qobject_cast<effector*>(manager.k.get_device(dev_rules->parent()->property("id").value<int>()));
+    effector* dev = qobject_cast<effector*>(manager.k->get_device(dev_rules->parent()->property("id").value<int>()));
 
     dev->delete_rule(sender()->property("Rule_index").value<int>());
 
@@ -539,11 +539,11 @@ void control::loop(int n)
     for(int j = 0; j < n; j++)
     {
         manager.loop();
-        foreach(record temp, manager.k.sys_model)
+        foreach(record temp, manager.k->sys_model)
         {
             i.effect(qobject_cast<effector*>(temp.pointer));
         }
-        foreach(record temp, manager.k.env_model)
+        foreach(record temp, manager.k->env_model)
         {
             i.sense(qobject_cast<sensor*>(temp.pointer));
         }
@@ -571,7 +571,7 @@ void control::open_file()
         if (f->open(QIODevice::ReadOnly)) {
             QByteArray i_arr = f->read(sizeof(float) * 4);
             if (i_arr.size() == sizeof(float) * 4) {
-                int err = manager.k.import_from_file(f);
+                int err = manager.import_knowledge(f);
                 if (err == 0)
                 {
                     i.set(i_arr);
@@ -627,7 +627,7 @@ void control::save()
         f->write(*i_arr);
         delete i_arr;
 
-        manager.k.save(f);
+        manager.k->save(f);
 
         f->close();
         delete f;

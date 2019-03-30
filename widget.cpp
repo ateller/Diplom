@@ -39,7 +39,7 @@ void Widget::monitor()
         delete it;
     }
     record temp;
-    foreach(temp, manager->k.sys_model) {
+    foreach(temp, manager->k->sys_model) {
         QWidget *w = new QWidget;
         QVBoxLayout *v = new QVBoxLayout;
         w->setLayout(v);
@@ -58,7 +58,7 @@ void Widget::monitor()
         delete it->widget();
         delete it;
     }
-    foreach(temp, manager->k.env_model) {
+    foreach(temp, manager->k->env_model) {
         QWidget *w = new QWidget;
         QVBoxLayout *v = new QVBoxLayout;
         w->setLayout(v);
@@ -113,5 +113,5 @@ void Widget::status()
     analysis();
     ui->label_2->setText("Plan status: " + QString::number(planned_counter) + " rules were planned for execution, " + QString::number(p_last) + " on last loop");
     ui->label_3->setText("Execute status: " + QString::number(executed_counter) + " rules executed, " + QString::number(ex_last) + " on last loop");
-    setWindowTitle("Monitor: loop " + QString::number(manager->k.loops_counter));
+    setWindowTitle("Monitor: loop " + QString::number(manager->k->loops_counter));
 }

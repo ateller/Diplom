@@ -553,15 +553,17 @@ void control::loop(int n)
 
 void control::open_file()
 {
-    QMessageBox* are_you_sure = new QMessageBox(QMessageBox::Warning, "SmartHome",
+    if(ui->componentsListScrollArea->layout()->count() > 0)
+    {
+        QMessageBox* are_you_sure = new QMessageBox(QMessageBox::Warning, "SmartHome",
                                                 "All unsaved changes will be lost. Do you want to save changes to the current file?",
                                                 QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-    are_you_sure->show();
-    int b = are_you_sure->exec();
-    delete are_you_sure;
-
-    if(b == QMessageBox::Cancel) return;
-    if(b == QMessageBox::Yes) save_slot();
+        are_you_sure->show();
+        int b = are_you_sure->exec();
+        delete are_you_sure;
+        if(b == QMessageBox::Cancel) return;
+        if(b == QMessageBox::Yes) save_slot();
+    }
 
     file_path = QFileDialog::getOpenFileName(nullptr, "Open Home", "", "*.shm");
 

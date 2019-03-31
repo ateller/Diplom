@@ -40,17 +40,17 @@ imitation::imitation()
 
 void imitation::effect(effector* eff)
 {
-    if(qobject_cast<window*>(eff) != nullptr)
+    if(eff->get_type() == WINDOW)
     {
         float area = qobject_cast<window*>(eff)->effect();
-        float a = area * static_cast<float> (0.7);
+        double a = static_cast<double>(area) * 0.7;
         temperature = (temperature * (v - a) + out_t * a)/v;
     }
-    else if(qobject_cast<heater*>(eff) != nullptr)
+    else if(eff->get_type() == HEATER)
     {
         int t = qobject_cast<heater*>(eff)->effect();
         if (t) {
-            float a = static_cast<float> (0.27);
+            double a = 0.27;
             temperature = (temperature * (v - a) + t * a)/v;
         }
     }
@@ -62,16 +62,21 @@ void imitation::sense(sensor* sen)
     if(qobject_cast<thermometer*>(sen) != nullptr)
     {
         if (!sen->broken)
-            qobject_cast<thermometer*>(sen)->sense(static_cast<int>(temperature));
+            qobject_cast<thermometer*>(sen)->sense(static_cast<int>(temperature+0.5));
         return;
     }
+}
+
+void imitation::calculate_physics()
+{
+    temperature = out_t + (temperature - out_t)*exp(-5.0/(45*(3600)));
 }
 
 QByteArray* imitation::get()
 {
     QByteArray* arr = new QByteArray;
     QDataStream stream(arr, QIODevice::WriteOnly);
-    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
     stream << temperature;
     stream << humidity;
     stream << out_t;
@@ -98,16 +103,16 @@ void imitation::change_val(double val)
 {
     switch (sender()->property("index").value<int>()) {
     case 0:
-        temperature = static_cast<float>(val);
+        temperature = val;
         break;
     case 1:
-        humidity = static_cast<float>(val);
+        humidity = val;
         break;
     case 2:
-        out_t = static_cast<float>(val);
+        out_t = val;
         break;
     case 3:
-        v = static_cast<float>(val);
+        v = val;
         break;
     }
 }
@@ -115,7 +120,7 @@ void imitation::change_val(double val)
 void imitation::set(QByteArray arr)
 {
     QDataStream stream(&arr, QIODevice::ReadOnly);
-    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
     stream >> temperature;
     stream >> humidity;
     stream >> out_t;

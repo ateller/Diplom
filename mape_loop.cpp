@@ -171,6 +171,14 @@ int mape_loop::import_knowledge(QFile *f)
     {
         delete k;
         k = n;
+        foreach(record temp, k->env_model)
+        {
+            connect(this, SIGNAL(system_update()), temp.pointer, SLOT(update()));
+        }
+        foreach(record temp, k->sys_model)
+        {
+            connect(this, SIGNAL(system_update()), temp.pointer, SLOT(update()));
+        }
         return 0;
     }
     else {

@@ -545,6 +545,7 @@ void control::loop(int n)
         {
             i.effect(qobject_cast<effector*>(temp.pointer));
         }
+        i.calculate_physics();
         foreach(record temp, manager.k->env_model)
         {
             i.sense(qobject_cast<sensor*>(temp.pointer));
@@ -573,8 +574,8 @@ void control::open_file()
     {
         QFile* f = new QFile(file_path);
         if (f->open(QIODevice::ReadOnly)) {
-            QByteArray i_arr = f->read(sizeof(float) * 4);
-            if (i_arr.size() == sizeof(float) * 4) {
+            QByteArray i_arr = f->read(sizeof(double) * 4);
+            if (i_arr.size() == sizeof(double) * 4) {
                 int err = manager.import_knowledge(f);
                 if (err == 0)
                 {

@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
+#include <math.h>
 
 //По идее должна считать физику и моделировать состояние системы на следующем шаге
 
@@ -16,14 +17,15 @@ public:
     imitation();
     void effect(effector* eff);
     void sense(sensor* sen);
+    void calculate_physics();
     void set(QByteArray);
     QByteArray* get();
     QWidget* get_ctrl_pointer();
 private:
-    float temperature;
-    float humidity;
-    float out_t;
-    float v;
+    double temperature;
+    double humidity;
+    double out_t;
+    double v;
     QWidget* i_control;
     //const float c_air = 1.007;
     //const float p_air = 1.16;

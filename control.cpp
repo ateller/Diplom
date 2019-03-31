@@ -140,6 +140,7 @@ void control::add_dev_widget(device* temp, int id)
     QWidget* parametres_widget = new QWidget;
     parametres_widget->hide();
     QVBoxLayout* form = new QVBoxLayout;
+    form->setContentsMargins(2,0,1,0);
     parametres_widget->setLayout(form);
     //Добавляем параметры
 
@@ -185,6 +186,7 @@ void control::add_dev_widget(device* temp, int id)
     if (s != nullptr) {
         QWidget* rules_widget = new QWidget;
         rules_widget->setLayout(new QVBoxLayout);
+        rules_widget->layout()->setContentsMargins(0,3,0,0);
         rules_widget->hide();
         vertical->addWidget(rules_widget);
 
@@ -655,11 +657,15 @@ void control::delete_all_dev_widgets()
    delete ui->sys_area;
    ui->sys_area = new QWidget;
    ui->sys_area->setLayout(new QVBoxLayout);
+   ui->sys_area->layout()->setContentsMargins(5,10,5,5);
+   ui->sys_area->layout()->setSpacing(0);
    ui->scrollArea_2->setWidget(ui->sys_area);
 
    delete ui->env_area;
    ui->env_area = new QWidget;
    ui->env_area->setLayout(new QVBoxLayout);
+   ui->env_area->layout()->setContentsMargins(5,10,5,5);
+   ui->env_area->layout()->setSpacing(0);
    ui->scrollArea->setWidget(ui->env_area);
 }
 

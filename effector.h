@@ -16,8 +16,6 @@ public:
     virtual void exec_rule(QList<parameter> operation) = 0;
 };
 
-struct to_execute {effector* subj; QList<parameter> operation;};
-
 class heater : public effector
 {
 Q_OBJECT

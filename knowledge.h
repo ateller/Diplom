@@ -15,6 +15,8 @@ struct history_value {int value; int cycle_number;};
 struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList<history>histories;};
 
+struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
+
 class knowledge: public QObject
 {
 Q_OBJECT
@@ -33,11 +35,13 @@ public:
     int indexof(sensor* s);
     int indexof(effector* e);
     int indexof(int);
+    void finish_execution(QList<executing_rule>::iterator);
     void save(QFile *f);
     void save_record (record, QDataStream *);
     record import_record (QDataStream*);
     int import_from_file(QFile* f);
     int loops_counter;
+    QList<executing_rule> exec_rules;
 public slots:
     void update_goal(int id, int par, int new_val);
 signals:

@@ -52,6 +52,19 @@ void mape_loop::monitor()
 
 void mape_loop::analysis()
 {
+    QList<executing_rule>::iterator i = k->exec_rules.begin();
+    for(; i != k->exec_rules.end(); i++)
+    {
+        if((k->loops_counter - (*i).start_loop) == 1)
+        {
+            //здесь будет прерывание исполнения, когда я его сделаю
+        }
+        if ((*i).timer == 0)
+        {
+            k->finish_execution(i);
+        }
+    }
+
     dist = k->distance();
     if(dist>tolerance)
         must_adapt = true;
@@ -103,17 +116,17 @@ void mape_loop::plan()
                     }
                 if(add == false) break;
             }
-            if(temp_r.timer)
+            if(k->loops_counter - temp_r.last_use < temp_r.period)
             {
                 add = false;
-                temp->ruleset[i].timer--;
             }
             if(add == true)
             {
                 to_execute r;
-                r.subj = temp;
+                r.id = rec.dev.id;
                 r.operation = temp_r.operation;
-                temp->ruleset[i].timer = temp_r.period;
+                r.timer = temp_r.period;
+                temp->ruleset[i].last_use = k->loops_counter;
                 ex_plan += r;
             }
             i++;
@@ -127,10 +140,16 @@ void mape_loop::execute()
     int i = 0;
     to_execute temp;
     foreach (temp, ex_plan) {
-        if(!temp.subj->broken) {
-            temp.subj->exec_rule(temp.operation);
+        effector* subj = qobject_cast<effector*>(k->get_device(temp.id));
+        if(!subj->broken) {
+            subj->exec_rule(temp.operation);
             i++;
         }
+        executing_rule r;
+        r.id = temp.id;
+        r.timer = temp.timer;
+        r.start_loop = k->loops_counter;
+        r.operation = temp.operation;
     }
     emit executed(i);
 }

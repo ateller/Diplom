@@ -7,7 +7,6 @@ rule_editing::rule_editing(QWidget *parent) :
 {
     ui->setupUi(this);
     r.period = 0;
-    r.timer = 0;
 }
 
 void rule_editing::init(knowledge* k, int eff_index)
@@ -356,5 +355,6 @@ void rule_editing::interstage()
 
 rule rule_editing::get_rule()
 {
+    r.last_use = -r.period;
     return r;
 }

@@ -5,7 +5,9 @@
 #include <QList>
 #include "knowledge.h"
 
-//Это штука, которая всем управляет, у нее есть база данных, списки сенсоров, эффекторов, и функции петли
+//Это штука, которая всем управляет, у нее есть база данных и функции петли
+
+struct to_execute {int id; QList<parameter> operation; int timer;};
 
 class mape_loop : public QObject
 {

@@ -110,6 +110,10 @@ void knowledge::upd()
         (*i).dev.par = (*i).pointer->get_list();
         upd_history(*i);
     }
+    QList<executing_rule>::iterator r = exec_rules.begin();
+    for (; r!= exec_rules.end(); r++) {
+        (*r).timer--;
+    }
 }
 
 device* knowledge::get_device(int id)
@@ -179,6 +183,11 @@ int knowledge::indexof(int id)
     }
 }
 
+void knowledge::finish_execution(QList<executing_rule>::iterator i)
+{
+    exec_rules.erase(i);
+}
+
 void knowledge::save(QFile* f)
 {
     QDataStream str(f);
@@ -214,7 +223,7 @@ void knowledge::save(QFile* f)
                 str << temp_o.index;
                 str << temp_o.value;
             }
-            str << temp_rule.timer;
+            str << temp_rule.last_use;
             str << temp_rule.period;
         }
     }
@@ -303,7 +312,7 @@ int knowledge::import_from_file(QFile* f)
                 r.operation.append(o);
             }
 
-            str >> r.timer;
+            str >> r.last_use;
             str >> r.period;
 
             qobject_cast <effector*>(sys_model.back().pointer)->add_rule(r);

@@ -31,7 +31,7 @@ private:
     //const float p_air = 1.16;
 private slots:
     void upd();
-    void change_val(double);
+    void change_val();
 
 };
 

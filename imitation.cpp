@@ -14,25 +14,25 @@ imitation::imitation()
     QDoubleSpinBox* s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(temperature));
     s->setProperty("index", QVariant(0));
-    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Temperature", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(humidity));
     s->setProperty("index", QVariant(1));
-    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Humidity", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(out_t));
     s->setProperty("index", QVariant(2));
-    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Outdoor temperature", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(v));
     s->setProperty("index", QVariant(3));
-    connect(s, SIGNAL(valueChanged(double)), this, SLOT(change_val(double)));
+    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Room volume", s);
 
     i_control->setFixedSize(300, i_control->sizeHint().height());
@@ -70,6 +70,7 @@ void imitation::sense(sensor* sen)
 void imitation::calculate_physics()
 {
     temperature = out_t + (temperature - out_t)*exp(-5.0/(45*(3600)));
+    upd();
 }
 
 QByteArray* imitation::get()
@@ -93,14 +94,15 @@ void imitation::upd()
 {
     QFormLayout* l = qobject_cast<QFormLayout*> (i_control->layout());
 
-    qobject_cast<QDoubleSpinBox*>(l->itemAt(0,QFormLayout::FieldRole)->widget())->setValue(static_cast<double>(temperature));
-    qobject_cast<QDoubleSpinBox*>(l->itemAt(1,QFormLayout::FieldRole)->widget())->setValue(static_cast<double>(humidity));
-    qobject_cast<QDoubleSpinBox*>(l->itemAt(2,QFormLayout::FieldRole)->widget())->setValue(static_cast<double>(out_t));
-    qobject_cast<QDoubleSpinBox*>(l->itemAt(3,QFormLayout::FieldRole)->widget())->setValue(static_cast<double>(v));
+    qobject_cast<QDoubleSpinBox*>(l->itemAt(0,QFormLayout::FieldRole)->widget())->setValue(temperature);
+    qobject_cast<QDoubleSpinBox*>(l->itemAt(1,QFormLayout::FieldRole)->widget())->setValue(humidity);
+    qobject_cast<QDoubleSpinBox*>(l->itemAt(2,QFormLayout::FieldRole)->widget())->setValue(out_t);
+    qobject_cast<QDoubleSpinBox*>(l->itemAt(3,QFormLayout::FieldRole)->widget())->setValue(v);
 }
 
-void imitation::change_val(double val)
+void imitation::change_val()
 {
+    double val = qobject_cast<QDoubleSpinBox*>(sender())->value();
     switch (sender()->property("index").value<int>()) {
     case 0:
         temperature = val;

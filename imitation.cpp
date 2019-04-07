@@ -93,8 +93,9 @@ void imitation::effect(effector* eff)
     {
         int t = qobject_cast<heater*>(eff)->effect();
         if (t) {
-            double a = 0.27;
-            temperature = (temperature * (v - a) + t * a)/v;
+            double a = 1;
+            double vel = 1;
+            temperature = (temperature * (v - a*vel) + t * a*vel)/v;
         }
     }
     upd();

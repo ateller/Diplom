@@ -54,7 +54,9 @@ private slots:
     void delete_rule();
     void control_device(int);
     void control_device(bool);
+    void control_device(double);
     void change_goal(int);
+    void change_goal(double);
     void change_goal(bool);
     void open_file();
     void save_slot();

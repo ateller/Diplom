@@ -3,6 +3,7 @@
 
 #include <device.h>
 #include <rules.h>
+#include <math.h>
 
  //Абстрактность и конкретность для эффекторов
 
@@ -24,7 +25,7 @@ public:
     void update();
     QList<QString> get_names();
     QList<bool> get_changeables();
-    void to_be_controlled(int p, int new_val);
+    void to_be_controlled(int p, val new_val);
     void exec_rule(QList<parameter> operation);
     int get_type();
     int effect();
@@ -38,19 +39,24 @@ class window : public effector
 {
 Q_OBJECT
 public:
+    struct result {float h; double f;};
     window();
     void update();
     QList<QString> get_names();
     QList<bool> get_changeables();
-    void to_be_controlled(int p, int new_val);
+    void to_be_controlled(int p, val new_val);
     void exec_rule(QList<parameter> operation);
     int get_type();
-    float effect();
+    result effect();
 private:
     float size;
     //Площадь окна в кв.метрах
     int percent_opened;
     //На сколько процентов открыто
+    float h;
+    //Высота от пола, на которой находится окно
+    float mu;
+    //Коэффициент расхода воздуха
 };
 
 #endif // EFFECTOR_H

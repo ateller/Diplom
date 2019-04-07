@@ -27,7 +27,6 @@ public:
     void init(knowledge *k, int eff_index);
     ~rule_editing();
     rule get_rule();
-
 private:
     Ui::rule_editing *ui;
     rule r;
@@ -36,12 +35,14 @@ private slots:
     void add_cond();
     void change_cond_val(int new_val);
     void change_cond_val(bool new_val);
+    void change_cond_val(double new_val);
     void change_cond_mode(int mode);
 
     void add_instr();
     void change_op_mode(int mode);
     void change_new_val(int new_val);
     void change_new_val(bool new_val);
+    void change_new_val(double new_val);
 
     void interstage();
     void change_period(int);
@@ -49,5 +50,6 @@ private slots:
 
 QCheckBox* createCheckBox(QString text, int par_index, int id);
 QSpinBox* createSpinBox(QString text, int value, int min, int max, int par_index, int id);
+QDoubleSpinBox* createDoubleSpinBox(QString text, float value, int min, int max, int par_index, int id);
 
 #endif // RULE_EDITING_H

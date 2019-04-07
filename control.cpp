@@ -163,18 +163,24 @@ void control::add_dev_widget(device* temp, int id)
             row->addWidget(p_val,1);
         }
         else {
-            QSpinBox* p_val = nullptr;
+            QAbstractSpinBox* p_val = nullptr;
             switch (p.type) {
             case TEMPERATURE:
-                p_val = createSpinBox(" degrees", p.value, 0, 100, i, 0);
+                p_val = createSpinBox(" degrees", p.value.i, 0, 100, i, 0);
+                connect(p_val, SIGNAL(valueChanged(int)), SLOT(control_device(int)));
                 break;
             case PERCENT:
-                p_val = createSpinBox(" percents", p.value, 0, 100, i, 0);
+                p_val = createSpinBox(" percents", p.value.i, 0, 100, i, 0);
+                connect(p_val, SIGNAL(valueChanged(int)), SLOT(control_device(int)));
                 break;
-            case AREA:
-                p_val = createSpinBox(" square meters", p.value, 0, 100, i, 0);
+            case COEFF:
+                p_val = createDoubleSpinBox("", p.value.f, -1, 1, i, 0);
+                connect(p_val, SIGNAL(valueChanged(double)), SLOT(control_device(double)));
+                break;
+            case F_SIZE:
+                p_val = createDoubleSpinBox(" meters", p.value.f, 0, 100, i, 0);
+                connect(p_val, SIGNAL(valueChanged(double)), SLOT(control_device(double)));
             }
-            connect(p_val, SIGNAL(valueChanged(int)), SLOT(control_device(int)));
             row->addWidget(p_val,1);
         }
 
@@ -222,7 +228,24 @@ void control::control_device(int new_val)
     //Номер параметра, указанный в динамическом свойстве
     device* to_control = manager.k->get_device(comp->property("id").value<int>());
     //Найти девайс по id
-    to_control->to_be_controlled(i,new_val);
+    val v;
+    v.i = new_val;
+    to_control->to_be_controlled(i, v);
+    //Поихали
+}
+
+void control::control_device(double new_val)
+{
+    QDoubleSpinBox *par = qobject_cast<QDoubleSpinBox*>(sender());
+    QWidget *comp = qobject_cast<QWidget*>(par->parentWidget()->parentWidget());
+    //Девайс виджет, который это вызвал
+    int i = par->property("Par_index").value<int>();
+    //Номер параметра, указанный в динамическом свойстве
+    device* to_control = manager.k->get_device(comp->property("id").value<int>());
+    //Найти девайс по id
+    val v;
+    v.f = static_cast<float> (new_val);
+    to_control->to_be_controlled(i,v);
     //Поихали
 }
 
@@ -235,7 +258,9 @@ void control::control_device(bool new_val)
     //Номер параметра, указанный в динамическом свойстве
     device* to_control = manager.k->get_device(comp->property("id").value<int>());
     //Найти девайс по id
-    to_control->to_be_controlled(i,new_val);
+    val v;
+    v.b = new_val;
+    to_control->to_be_controlled(i,v);
     //Поихали
 }
 
@@ -258,7 +283,7 @@ void control::edit_name(QString new_name)
     }
     else {
 
-        area = ui->env_area;
+         area = ui->env_area;
     }
     //Узнали, что за компонент
     i = manager.indexof(id);
@@ -344,18 +369,24 @@ void control::upd_goal(int id)
             par->addWidget(val, 1, 0, 1, 1);
         }
         else {
-            QSpinBox* val = nullptr;
+            QAbstractSpinBox* val = nullptr;
             switch (types[temp.index]) {
             case TEMPERATURE:
-                val = createSpinBox(" degrees", temp.value, 0, 100, i, 0);
+                val = createSpinBox(" degrees", temp.value.i, 0, 100, i, 0);
+                connect(val, SIGNAL(valueChanged(int)), SLOT(change_goal(int)));
+                break;
+            case COEFF:
+                val = createDoubleSpinBox("", temp.value.f, -1, 1, i, 0);
+                connect(val, SIGNAL(valueChanged(int)), SLOT(control_device(int)));
                 break;
             case PERCENT:
-                val = createSpinBox(" percents", temp.value, 0, 100, i, 0);
+                val = createSpinBox(" percents", temp.value.i, 0, 100, i, 0);
+                connect(val, SIGNAL(valueChanged(int)), SLOT(change_goal(int)));
                 break;
-            case AREA:
-                val = createSpinBox(" square meters", temp.value, 0, 100, i, 0);
+            case F_SIZE:
+                val = createDoubleSpinBox(" meters", temp.value.f, 0, 100, i, 0);
+                connect(val, SIGNAL(valueChanged(double)), SLOT(change_goal(double)));
             }
-            connect(val, SIGNAL(valueChanged(int)), SLOT(change_goal(int)));
             par->addWidget(val, 1, 0, 1, 1);
         }
 
@@ -380,18 +411,31 @@ void control::upd_goal(int id)
     manager.k->update_goal(id,i,val);
 }*/
 
-void control::change_goal(int val)
+void control::change_goal(int value)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QWidget*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k->update_goal(id,i,val);
+    val v;
+    v.i = value;
+    manager.k->update_goal(id,i,v);
 }
 
-void control::change_goal(bool val)
+void control::change_goal(double value)
 {
     int i = sender()->property("Par_index").value<int>();
     int id = qobject_cast<QWidget*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k->update_goal(id,i,val);
+    val v;
+    v.f = static_cast<float> (value);
+    manager.k->update_goal(id,i,v);
+}
+
+void control::change_goal(bool value)
+{
+    int i = sender()->property("Par_index").value<int>();
+    int id = qobject_cast<QWidget*>(sender())->parentWidget()->property("id").value<int>();
+    val v;
+    v.b = value;
+    manager.k->update_goal(id,i,v);
 }
 
 void control::goal_ignore(bool not_care)
@@ -486,7 +530,19 @@ void control::show_rule()
         case LARGER:
             text.append(" greater than ");
         }
-        text.append(QString::number(temp_c.p.value) + "\n");
+        switch (temp_d->get_list()[temp_c.p.index].type) {
+            case TEMPERATURE:
+            case PERCENT:
+                text.append(QString::number(temp_c.p.value.i) + "\n");
+                break;
+            case COEFF:
+            case F_SIZE:
+                text.append(QString::number(static_cast<double>(temp_c.p.value.f)) + "\n");
+                break;
+            case ON_OFF:
+                text.append(QString::number(temp_c.p.value.b) + "\n");
+                break;
+        }
     }
 
     text.append("\nOperation:\n\n");
@@ -502,7 +558,20 @@ void control::show_rule()
         case INCREASE:
             text.append(" Increase " + names[temp_i.index] + " by ");
         }
-        text.append(QString::number(temp_i.value) + "\n");
+
+        switch (temp->get_list()[temp_i.index].type) {
+            case TEMPERATURE:
+            case PERCENT:
+                text.append(QString::number(temp_i.value.i) + "\n");
+                break;
+            case COEFF:
+            case F_SIZE:
+                text.append(QString::number(static_cast<double>(temp_i.value.f)) + "\n");
+                break;
+            case ON_OFF:
+                text.append(QString::number(temp_i.value.b) + "\n");
+                break;
+        }
     }
 
     text.append("\nThe max. frequency of application: " + QString::number(r.period));
@@ -574,8 +643,8 @@ void control::open_file()
     {
         QFile* f = new QFile(file_path);
         if (f->open(QIODevice::ReadOnly)) {
-            QByteArray i_arr = f->read(sizeof(double) * 4);
-            if (i_arr.size() == sizeof(double) * 4) {
+            QByteArray i_arr = f->read(sizeof(double) * 5);
+            if (i_arr.size() == sizeof(double) * 5) {
                 int err = manager.import_knowledge(f);
                 if (err == 0)
                 {

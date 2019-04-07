@@ -23,24 +23,24 @@ void heater::update()
     list.clear();
 
     temp.index = 0;
-    temp.value = flow_t;
+    temp.value.i = flow_t;
     temp.type = TEMPERATURE;
     list += temp;
 
     temp.index = 1;
-    temp.value = enabled;
+    temp.value.b = enabled;
     temp.type = ON_OFF;
     list += temp;
 }
 
-void heater::to_be_controlled(int p, int new_val)
+void heater::to_be_controlled(int p, val new_val)
 {
     switch (p) {
     case 0:
-        flow_t = new_val;
+        flow_t = new_val.i;
         break;
     case 1:
-        enabled = new_val;
+        enabled = new_val.b;
         break;
     }
 }
@@ -51,19 +51,19 @@ void heater::exec_rule(QList<parameter> operation)
     foreach (temp, operation) {
         if(temp.index)
         {
-            enabled = temp.value;
+            enabled = temp.value.b;
         }
         else
         {
             switch (temp.type) {
             case INCREASE:
-                flow_t += temp.value;
+                flow_t += temp.value.i;
                 break;
             case DECREASE:
-                flow_t -= temp.value;
+                flow_t -= temp.value.i;
                 break;
             case ASSIGN:
-                flow_t = temp.value;
+                flow_t = temp.value.i;
                 break;
             }
             if(flow_t < 0)
@@ -106,6 +106,8 @@ window::window()
 {
     size = 1;
     percent_opened = 0;
+    h = 1.5;
+    mu = static_cast<float> (0.6);
     update();
 }
 
@@ -115,24 +117,40 @@ void window::update()
     list.clear();
 
     temp.index = 0;
-    temp.value = percent_opened;
+    temp.value.i = percent_opened;
     temp.type = PERCENT;
     list += temp;
 
     temp.index = 1;
-    temp.value = size;
-    temp.type = AREA;
+    temp.value.f = size;
+    temp.type = F_SIZE;
+    list += temp;
+
+    temp.index = 2;
+    temp.value.f = h;
+    temp.type = F_SIZE;
+    list += temp;
+
+    temp.index = 3;
+    temp.value.f = mu;
+    temp.type = COEFF;
     list += temp;
 }
 
-void window::to_be_controlled(int p, int new_val)
+void window::to_be_controlled(int p, val new_val)
 {
     switch (p) {
     case 0:
-        percent_opened = new_val;
+        percent_opened = new_val.i;
         break;
     case 1:
-        size = new_val;
+        size = new_val.f;
+        break;
+    case 2:
+        h = new_val.f;
+        break;
+    case 3:
+        mu = new_val.f;
         break;
     }
 }
@@ -142,13 +160,13 @@ void window::exec_rule(QList<parameter> operation)
     parameter temp = operation[0];
     switch (temp.type) {
     case INCREASE:
-         percent_opened += temp.value;
+         percent_opened += temp.value.i;
          break;
     case DECREASE:
-         percent_opened -= temp.value;
+         percent_opened -= temp.value.i;
          break;
     case ASSIGN:
-         percent_opened = temp.value;
+         percent_opened = temp.value.i;
          break;
     }
     if(percent_opened < 0)
@@ -162,9 +180,15 @@ int window::get_type()
     return WINDOW;
 }
 
-float window::effect()
+window::result window::effect()
 {
-    return (percent_opened/100.0) * size;
+    result e;
+    e.h = h;
+
+    double sinus = sin(M_PI_2 * (percent_opened / 100.0));
+
+    e.f = static_cast<double> (mu) * sinus * static_cast<double> (size);
+    return e;
 }
 
 QList<QString> window::get_names()
@@ -172,6 +196,8 @@ QList<QString> window::get_names()
     QList<QString> l;
     l.append("Percent opened");
     l.append("Size");
+    l.append("Altitude");
+    l.append("Air coefficient");
     return l;
 }
 
@@ -179,6 +205,8 @@ QList<bool> window::get_changeables()
 {
     QList<bool> l;
     l.append(true);
+    l.append(false);
+    l.append(false);
     l.append(false);
     return l;
 }

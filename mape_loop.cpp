@@ -84,7 +84,7 @@ void mape_loop::plan()
         int i = 0;
         foreach(temp_r, temp->ruleset)
         {
-            bool add = 1;
+            bool add = true;
             condition temp_c;
             foreach(temp_c, temp_r.pre)
             {
@@ -93,27 +93,20 @@ void mape_loop::plan()
                     model = k->sys_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
                 else
                     model = k->env_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
-                if(model.type == ON_OFF) {
-                    if(model.value != temp_c.p.value){
-                        add = false;
-                    }
+
+                switch (model.type) {
+                    case ON_OFF:
+                        if(model.value.b != temp_c.p.value.b) add = false;
+                        break;
+                case PERCENT:
+                case TEMPERATURE:
+                    add = compare(model.value.i, temp_c.p.value.i, temp_c.p.type);
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    add = compare(model.value.f, temp_c.p.value.f, temp_c.p.type);
                 }
-                else {
-                        switch (temp_c.p.type) {
-                        case LESS:
-                            if(model.value >= temp_c.p.value)
-                                add = false;
-                            break;
-                        case LARGER:
-                            if(model.value <= temp_c.p.value)
-                                add = false;
-                            break;
-                        case EQUAL:
-                            if(model.value != temp_c.p.value)
-                                add = false;
-                            break;
-                        }
-                    }
+
                 if(add == false) break;
             }
             if(k->loops_counter - temp_r.last_use < temp_r.period)

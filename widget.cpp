@@ -27,6 +27,38 @@ void Widget::set(mape_loop *pointer)
     ui->groupBox_2->setLayout(new QVBoxLayout);
 }
 
+QString Widget::create_par_string(parameter p)
+{
+    QString s;
+    switch (p.type) {
+    case TEMPERATURE:
+    case PERCENT:
+        s = QString::number(p.value.i);
+        break;
+    case COEFF:
+    case F_SIZE:
+        s = QString::number(static_cast <double> (p.value.f));
+        break;
+    case ON_OFF:
+        s = QString::number(p.value.b);
+        break;
+    }
+    return s;
+}
+
+void Widget::create_dev_par_labels(QLayout *l, record r)
+{
+    QWidget *w = new QWidget;
+    QVBoxLayout *v = new QVBoxLayout;
+    w->setLayout(v);
+    l->addWidget(w);
+    parameter p;
+    foreach (p, r.dev.par)
+    {
+        v->addWidget(new QLabel(r.pointer->name + ":" + r.names[p.index] + ": " + create_par_string(p)));
+    }
+}
+
 void Widget::monitor()
 {
     int i, size;
@@ -40,15 +72,7 @@ void Widget::monitor()
     }
     record temp;
     foreach(temp, manager->k->sys_model) {
-        QWidget *w = new QWidget;
-        QVBoxLayout *v = new QVBoxLayout;
-        w->setLayout(v);
-        l->addWidget(w);
-        parameter p;
-        foreach (p, temp.dev.par)
-        {
-            v->addWidget(new QLabel(temp.pointer->name + ":" + temp.names[p.index] + ": " + QString::number(p.value)));
-        }
+        create_dev_par_labels(l, temp);
     }
     l = ui->groupBox_2->layout();
     size = l->count();
@@ -59,15 +83,7 @@ void Widget::monitor()
         delete it;
     }
     foreach(temp, manager->k->env_model) {
-        QWidget *w = new QWidget;
-        QVBoxLayout *v = new QVBoxLayout;
-        w->setLayout(v);
-        l->addWidget(w);
-        parameter p;
-        foreach (p, temp.dev.par)
-        {
-            v->addWidget(new QLabel(temp.pointer->name + ":" + temp.names[p.index] + ": " + QString::number(p.value)));
-        }
+       create_dev_par_labels(l, temp);
     }
 }
 
@@ -113,5 +129,5 @@ void Widget::status()
     analysis();
     ui->label_2->setText("Plan status: " + QString::number(planned_counter) + " rules were planned for execution, " + QString::number(p_last) + " on last loop");
     ui->label_3->setText("Execute status: " + QString::number(executed_counter) + " rules executed, " + QString::number(ex_last) + " on last loop");
-    setWindowTitle("Monitor: loop " + QString::number(manager->k->loops_counter));
+    setWindowTitle("Monitor: loop " + QString::number(manager->k->loops_counter) + ", or " + QString::number(manager->k->loops_counter * 5) + " seconds from the start");
 }

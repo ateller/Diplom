@@ -12,14 +12,14 @@ void thermometer::update()
     list.clear();
 
     temp.index = 0;
-    temp.value = temperature;
+    temp.value.i = temperature;
     temp.type = TEMPERATURE;
     list += temp;
 }
 
-void thermometer::to_be_controlled(int p, int new_val)
+void thermometer::to_be_controlled(int p, val new_val)
 {
-    temperature = new_val;
+    temperature = new_val.i;
 }
 
 void thermometer::sense(int t)

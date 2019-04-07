@@ -5,10 +5,11 @@
 #include <QList>
 #include <QString>
 
-#define TEMPERATURE 0
-#define ON_OFF 1
-#define PERCENT 2
-#define AREA 3
+#define TEMPERATURE 0 //int
+#define ON_OFF 1 //bool
+#define PERCENT 2 //int
+#define F_SIZE 3 //float > 0
+#define COEFF 4//float
 
 #define THERMOMETER -1
 #define HEATER 2
@@ -16,11 +17,13 @@
 
 //Типы и id сенсоров всегда отрицательные, эффекторов - положительные
 
-//Объявлена всякаяя абстрактность для девайсов
+//Объявлена всякая абстрактность для девайсов
 
 class device;
 
-struct parameter {int index; int value; int type;};
+union val { int i; float f; bool b;};
+
+struct parameter {int index; val value; int type;};
 //Имя и значение в текстовом виде
 
 class device : public QObject
@@ -34,7 +37,7 @@ public:
     virtual int get_type() = 0;
     QString name;
     bool broken = 0;
-    virtual void to_be_controlled(int p, int new_val) = 0;
+    virtual void to_be_controlled(int p, val new_val) = 0;
 protected:
     QList<parameter> list;
 public slots:

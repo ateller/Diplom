@@ -5,7 +5,8 @@ imitation::imitation()
     temperature = 20;
     humidity = 0;
     out_t = 0;
-    v = 30;
+    v = 60;
+    air_h = 2;
 
     i_control = new QWidget;
     QFormLayout* l = new QFormLayout;
@@ -35,16 +36,58 @@ imitation::imitation()
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Room volume", s);
 
-    i_control->setFixedSize(300, i_control->sizeHint().height());
+    s = new QDoubleSpinBox;
+    s->setValue(static_cast<double>(air_h));
+    s->setProperty("index", QVariant(4));
+    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
+    l->addRow("Equal Pressure Altitude", s);
+
+    i_control->setFixedSize(375, i_control->sizeHint().height());
 }
 
 void imitation::effect(effector* eff)
 {
     if(eff->get_type() == WINDOW)
     {
-        float area = qobject_cast<window*>(eff)->effect();
-        double a = static_cast<double>(area) * 0.7;
-        temperature = (temperature * (v - a) + out_t * a)/v;
+        window::result e = qobject_cast<window*>(eff)->effect();
+        for(int i = 0; i < 5; i++)
+        {
+            double out_p = 353.0/(273.0 + out_t),
+                    in_p = 353.0/(273.0 + temperature);
+            //Считаем плотности
+
+            double out_ro = 9.81 * out_p * (air_h - static_cast<double> (e.h)),
+                    in_ro = 9.81 * in_p * (air_h - static_cast<double> (e.h));
+
+            //Считаем давления
+
+            double delta_p = out_ro - in_ro;
+            //Разность давлений
+
+            double g;
+
+            if (delta_p > 0)
+            {
+                g = e.f * sqrt(2 * delta_p * out_p);
+            }
+            else
+            {
+                g = - e.f * sqrt(2 * (- delta_p) * in_p);
+            }
+            //Расход кг в сек. Положительный - воздух втекает, отрицательный - вытекает
+
+            double m = v * in_p;
+            //Масса воздуха в помещении
+
+            m += g;
+            //Как поменялась за секунду
+
+            in_p = m/v;
+            //Как поменялась плотность
+
+            temperature = 353/in_p - 273;
+            //Предполагаем, что все мгновенно смешивается и температура так же зависит от плотности
+        }
     }
     else if(eff->get_type() == HEATER)
     {
@@ -82,6 +125,7 @@ QByteArray* imitation::get()
     stream << humidity;
     stream << out_t;
     stream << v;
+    stream << air_h;
     return arr;
 }
 
@@ -98,6 +142,7 @@ void imitation::upd()
     qobject_cast<QDoubleSpinBox*>(l->itemAt(1,QFormLayout::FieldRole)->widget())->setValue(humidity);
     qobject_cast<QDoubleSpinBox*>(l->itemAt(2,QFormLayout::FieldRole)->widget())->setValue(out_t);
     qobject_cast<QDoubleSpinBox*>(l->itemAt(3,QFormLayout::FieldRole)->widget())->setValue(v);
+    qobject_cast<QDoubleSpinBox*>(l->itemAt(3,QFormLayout::FieldRole)->widget())->setValue(air_h);
 }
 
 void imitation::change_val()
@@ -116,6 +161,9 @@ void imitation::change_val()
     case 3:
         v = val;
         break;
+    case 4:
+        air_h = val;
+        break;
     }
 }
 
@@ -127,4 +175,5 @@ void imitation::set(QByteArray arr)
     stream >> humidity;
     stream >> out_t;
     stream >> v;
+    stream >> air_h;
 }

@@ -22,6 +22,8 @@ private:
     mape_loop *manager;
     int executed_counter, ex_last;
     int planned_counter, p_last;
+    QString create_par_string(parameter p);
+    void create_dev_par_labels(QLayout *l, record r);
 public slots:
     void monitor();
     void analysis();

@@ -15,7 +15,7 @@ Q_OBJECT
 public:
     thermometer();
     void update();
-    void to_be_controlled(int p, int new_val);
+    void to_be_controlled(int p, val new_val);
     QList<QString> get_names();
     QList<bool> get_changeables();
     int get_type();

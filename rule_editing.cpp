@@ -46,16 +46,19 @@ void rule_editing::init(knowledge* k, int eff_index)
                 l->addWidget(val,2);
             }
             else {
-                QSpinBox* val = nullptr;
+                QAbstractSpinBox* val = nullptr;
                 switch (temp.dev.par[p.index].type) {
                 case TEMPERATURE:
-                    val = createSpinBox(" degrees", p.value, 0, 100, i, 0);
+                    val = createSpinBox(" degrees", p.value.i, 0, 100, i, 0);
                     break;
                 case PERCENT:
-                    val = createSpinBox(" percents", p.value, 0, 100, i, 0);
+                    val = createSpinBox(" percents", p.value.i, 0, 100, i, 0);
                     break;
-                case AREA:
-                    val = createSpinBox(" square meters", p.value, 0, 100, i, 0);
+                case COEFF:
+                    val = createDoubleSpinBox("", p.value.f, -1, 1, i, 0);
+                    break;
+                case F_SIZE:
+                    val = createDoubleSpinBox(" meters", p.value.f, 0, 100, i, 0);
                 }
 
                 QComboBox *cond_type = new QComboBox;
@@ -101,16 +104,19 @@ void rule_editing::init(knowledge* k, int eff_index)
                 l->addWidget(val,2);
             }
             else {
-                QSpinBox* val = nullptr;
+                QAbstractSpinBox* val = nullptr;
                 switch (temp.dev.par[p.index].type) {
                 case TEMPERATURE:
-                    val = createSpinBox(" degrees", p.value, 0, 100, i, 0);
+                    val = createSpinBox(" degrees", p.value.i, 0, 100, i, 0);
                     break;
                 case PERCENT:
-                    val = createSpinBox(" percents", p.value, 0, 100, i, 0);
+                    val = createSpinBox(" percents", p.value.i, 0, 100, i, 0);
                     break;
-                case AREA:
-                    val = createSpinBox(" square meters", p.value, 0, 100, i, 0);
+                case COEFF:
+                    val = createDoubleSpinBox("", p.value.f, -1, 1, i, 0);
+                    break;
+                case F_SIZE:
+                    val = createDoubleSpinBox(" meters", p.value.f, 0, 100, i, 0);
                 }
 
                 QComboBox *cond_type = new QComboBox;
@@ -158,16 +164,19 @@ void rule_editing::init(knowledge* k, int eff_index)
             l->addWidget(val,2);
         }
         else {
-            QSpinBox* val = nullptr;
+            QAbstractSpinBox* val = nullptr;
             switch (temp.dev.par[p.index].type) {
             case TEMPERATURE:
-                val = createSpinBox(" degrees", p.value, 0, 100, i, 0);
+                val = createSpinBox(" degrees", p.value.i, 0, 100, i, 0);
                 break;
             case PERCENT:
-                val = createSpinBox(" percents", p.value, 0, 100, i, 0);
+                val = createSpinBox(" percents", p.value.i, 0, 100, i, 0);
                 break;
-            case AREA:
-                val = createSpinBox(" square meters", p.value, 0, 100, i, 0);
+            case COEFF:
+                val = createDoubleSpinBox("", p.value.f, -1, 1, i, 0);
+                break;
+            case F_SIZE:
+                val = createDoubleSpinBox(" meters", p.value.f, 0, 100, i, 0);
             }
 
             QComboBox *op_type = new QComboBox;
@@ -225,10 +234,19 @@ void rule_editing::add_cond()
     int size = par->count();
 
     if(size == 4) {
-        QSpinBox* l = qobject_cast<QSpinBox*>(par->itemAt(3)->widget());
-        n.p.value = l->value();
-        l->setEnabled(1);
-        connect(l, SIGNAL(valueChanged(int)), SLOT(change_cond_val(int)));
+        if(qobject_cast<QSpinBox*>(par->itemAt(3)->widget()) == nullptr)
+        {
+            QDoubleSpinBox* l = qobject_cast<QDoubleSpinBox*>(par->itemAt(3)->widget());
+            n.p.value.f = static_cast<float> (l->value());
+            l->setEnabled(1);
+            connect(l, SIGNAL(valueChanged(double)), SLOT(change_cond_val(double)));
+        }
+        else {
+            QSpinBox* l = qobject_cast<QSpinBox*>(par->itemAt(3)->widget());
+            n.p.value.i = l->value();
+            l->setEnabled(1);
+            connect(l, SIGNAL(valueChanged(int)), SLOT(change_cond_val(int)));
+        }
 
         QComboBox *type = qobject_cast<QComboBox*>(par->itemAt(2)->widget());
         connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_cond_mode(int)));
@@ -237,7 +255,7 @@ void rule_editing::add_cond()
     }
     else {
         QCheckBox* l = qobject_cast<QCheckBox*>(par->itemAt(2)->widget());
-        n.p.value = l->isChecked();
+        n.p.value.b = l->isChecked();
         l->setEnabled(1);
         connect(l, SIGNAL(toggled(bool)), SLOT(change_cond_val(bool)));
 
@@ -249,13 +267,19 @@ void rule_editing::add_cond()
 void rule_editing::change_cond_val(int new_val)
 {
     QWidget *cond = qobject_cast<QWidget*>(sender()->parent());
-    r.pre[cond->property("Pre_index").value<int>()].p.value = new_val;
+    r.pre[cond->property("Pre_index").value<int>()].p.value.i = new_val;
+}
+
+void rule_editing::change_cond_val(double new_val)
+{
+    QWidget *cond = qobject_cast<QWidget*>(sender()->parent());
+    r.pre[cond->property("Pre_index").value<int>()].p.value.f = static_cast <float> (new_val);
 }
 
 void rule_editing::change_cond_val(bool new_val)
 {
     QWidget *cond = qobject_cast<QWidget*>(sender()->parent());
-    r.pre[cond->property("Pre_index").value<int>()].p.value = new_val;
+    r.pre[cond->property("Pre_index").value<int>()].p.value.b = new_val;
 }
 
 void rule_editing::change_cond_mode(int mode)
@@ -278,10 +302,19 @@ void rule_editing::add_instr()
     int size = par->count();
 
     if(size == 4) {
-        QSpinBox* l = qobject_cast<QSpinBox*>(par->itemAt(3)->widget());
-        n.value = l->value();
-        l->setEnabled(1);
-        connect(l, SIGNAL(valueChanged(int)), SLOT(change_new_val(int)));
+        if(qobject_cast<QSpinBox*>(par->itemAt(3)->widget()) == nullptr)
+        {
+            QDoubleSpinBox* l = qobject_cast<QDoubleSpinBox*>(par->itemAt(3)->widget());
+            n.value.f = static_cast<float> (l->value());
+            l->setEnabled(1);
+            connect(l, SIGNAL(valueChanged(int)), SLOT(change_new_val(int)));
+        }
+        else {
+            QSpinBox* l = qobject_cast<QSpinBox*>(par->itemAt(3)->widget());
+            n.value.i = l->value();
+            l->setEnabled(1);
+            connect(l, SIGNAL(valueChanged(double)), SLOT(change_new_val(double)));
+        }
 
         QComboBox *type = qobject_cast<QComboBox*>(par->itemAt(2)->widget());
         connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_cond_mode(int)));
@@ -290,7 +323,7 @@ void rule_editing::add_instr()
     }
     else {
         QCheckBox* l = qobject_cast<QCheckBox*>(par->itemAt(2)->widget());
-        n.value = l->isChecked();
+        n.value.b = l->isChecked();
         l->setEnabled(1);
         connect(l, SIGNAL(toggled(bool)), SLOT(change_new_val(bool)));
 
@@ -323,13 +356,19 @@ QSpinBox* createSpinBox(QString text, int value, int min, int max, int par_index
 void rule_editing::change_new_val(int new_val)
 {
     QWidget *instr = qobject_cast<QWidget*>(sender()->parent());
-    r.operation[instr->property("Instr_index").value<int>()].value = new_val;
+    r.operation[instr->property("Instr_index").value<int>()].value.i = new_val;
+}
+
+void rule_editing::change_new_val(double new_val)
+{
+    QWidget *instr = qobject_cast<QWidget*>(sender()->parent());
+    r.operation[instr->property("Instr_index").value<int>()].value.f = static_cast<float> (new_val);
 }
 
 void rule_editing::change_new_val(bool new_val)
 {
     QWidget *instr = qobject_cast<QWidget*>(sender()->parent());
-    r.operation[instr->property("Instr_index").value<int>()].value = new_val;
+    r.operation[instr->property("Instr_index").value<int>()].value.b = new_val;
 }
 
 void rule_editing::change_op_mode(int mode)
@@ -357,4 +396,17 @@ rule rule_editing::get_rule()
 {
     r.last_use = -r.period;
     return r;
+}
+
+QDoubleSpinBox *createDoubleSpinBox(QString text, float value, int min, int max, int par_index, int id)
+{
+    QDoubleSpinBox* c = new QDoubleSpinBox();
+
+    c->setMaximum(max);
+    c->setMinimum(min);
+    c->setValue(static_cast<double>(value));
+    c->setSuffix(text);
+    c->setProperty("Par_index", par_index);
+    if(id) c->setProperty("id", id);
+    return c;
 }

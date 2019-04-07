@@ -26,9 +26,8 @@ private:
     double humidity;
     double out_t;
     double v;
+    double air_h;
     QWidget* i_control;
-    //const float c_air = 1.007;
-    //const float p_air = 1.16;
 private slots:
     void upd();
     void change_val();

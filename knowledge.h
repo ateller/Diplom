@@ -10,8 +10,8 @@
 
 
 struct dev_parametres{int id; QList<parameter> par;};
-struct goal{int index; int value; bool not_care;};
-struct history_value {int value; int cycle_number;};
+struct goal{int index; val value; bool not_care;};
+struct history_value {val value; int cycle_number;};
 struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList<history>histories;};
 
@@ -41,13 +41,34 @@ public:
     record import_record (QDataStream*);
     int import_from_file(QFile* f);
     int loops_counter;
+    int delta(parameter p, val g);
     QList<executing_rule> exec_rules;
 public slots:
-    void update_goal(int id, int par, int new_val);
+    void update_goal(int id, int par, val new_val);
 signals:
     void added(int);
 private:
     void upd_history(record);
 };
+
+template<typename v>
+bool compare(v one, v two, int type)
+{
+    switch (type) {
+    case LESS:
+        if(one >= two)
+            return false;
+        break;
+    case LARGER:
+        if(one <= two)
+            return false;
+        break;
+    case EQUAL:
+        if(one != two)
+            return false;
+        break;
+    }
+    return true;
+}
 
 #endif // KNOWLEDGE_H

@@ -63,7 +63,7 @@ int knowledge::add(device *s)
     return temp.dev.id;
 }
 
-void knowledge::update_goal(int id, int par, int new_val)
+void knowledge::update_goal(int id, int par, val new_val)
 {
     if (id < 0)
         env_model[indexof(id)].goal_model[par].value = new_val;
@@ -76,13 +76,23 @@ void knowledge::upd_history(record temp)
     QList<history>::iterator j = (temp).histories.begin();
     for(; j != (temp).histories.end(); j++)
     {
-        if((*j).series.back().value == (temp).dev.par[(*j).index].value) continue;
-        else {
-            history_value h_v;
-            h_v.cycle_number = loops_counter;
-            h_v.value = (temp).dev.par[(*j).index].value;
-            (*j).series.append(h_v);
+        switch (temp.dev.par[(*j).index].type) {
+            case TEMPERATURE:
+            case PERCENT:
+                if((*j).series.back().value.i == (temp).dev.par[(*j).index].value.i) continue;
+                break;
+            case ON_OFF:
+                if((*j).series.back().value.b == (temp).dev.par[(*j).index].value.b) continue;
+                break;
+            case COEFF:
+            case F_SIZE:
+                if((*j).series.back().value.f == (temp).dev.par[(*j).index].value.f) continue;
+                break;
         }
+        history_value h_v;
+        h_v.cycle_number = loops_counter;
+        h_v.value = (temp).dev.par[(*j).index].value;
+        (*j).series.append(h_v);
     }
 }
 
@@ -213,7 +223,7 @@ void knowledge::save(QFile* f)
             {
                 str << temp_c.p.type;
                 str << temp_c.p.index;
-                str << temp_c.p.value;
+                str << temp_c.p.value.f;
                 str << temp_c.dev_id;
             }
             str << temp_rule.operation.size();
@@ -221,7 +231,7 @@ void knowledge::save(QFile* f)
             {
                 str << temp_o.type;
                 str << temp_o.index;
-                str << temp_o.value;
+                str << temp_o.value.f;
             }
             str << temp_rule.last_use;
             str << temp_rule.period;
@@ -239,14 +249,14 @@ void knowledge::save_record(record temp, QDataStream* str)
     {
         *str << temp_p.index;
         *str << temp_p.type;
-        *str << temp_p.value;
+        *str << temp_p.value.f;
     }
 
     *str << temp.goal_model.size();
     foreach (goal temp_g, temp.goal_model)
     {
         *str << temp_g.index;
-        *str << temp_g.value;
+        *str << temp_g.value.f;
         *str << temp_g.not_care;
     }
 
@@ -258,7 +268,7 @@ void knowledge::save_record(record temp, QDataStream* str)
         *str << temp_h.series.size();
         foreach (history_value h_v, temp_h.series)
         {
-            *str << h_v.value;
+            *str << h_v.value.f;
             *str << h_v.cycle_number;
         }
     }
@@ -298,7 +308,7 @@ int knowledge::import_from_file(QFile* f)
                 condition c;
                 str >> c.p.type;
                 str >> c.p.index;
-                str >> c.p.value;
+                str >> c.p.value.f;
                 str >> c.dev_id;
                 r.pre.append(c);
             }
@@ -308,7 +318,7 @@ int knowledge::import_from_file(QFile* f)
                 parameter o;
                 str >> o.type;
                 str >> o.index;
-                str >> o.value;
+                str >> o.value.f;
                 r.operation.append(o);
             }
 
@@ -352,7 +362,7 @@ record knowledge::import_record(QDataStream* str)
         parameter p;
         *str >> p.index;
         *str >> p.type;
-        *str >> p.value;
+        *str >> p.value.f;
         temp.dev.par.append(p);
     }
 
@@ -361,7 +371,7 @@ record knowledge::import_record(QDataStream* str)
     for (int j = 0; j < k; j++) {
         goal g;
         *str >> g.index;
-        *str >> g.value;
+        *str >> g.value.f;
         *str >> g.not_care;
         temp.goal_model.append(g);
     }
@@ -379,7 +389,7 @@ record knowledge::import_record(QDataStream* str)
         for(int l = 0; l < m; l++)
         {
             history_value h_v;
-            *str >> h_v.value;
+            *str >> h_v.value.f;
             *str >> h_v.cycle_number;
             temp_h.series.append(h_v);
         }
@@ -389,6 +399,36 @@ record knowledge::import_record(QDataStream* str)
     }
 
     return temp;
+}
+
+int knowledge::delta(parameter p, val g)
+{
+    int delta = 0;
+    switch (p.type) {
+    case TEMPERATURE:
+        delta = g.i - p.value.i;
+        if(delta < 0) delta = - delta;
+        if(delta > 100) delta = 100;
+        break;
+    case ON_OFF:
+        if(g.b != p.value.b)
+            delta = 100;
+        break;
+    case PERCENT:
+        delta = g.i - p.value.i;
+        if(delta < 0) delta = - delta;
+        break;
+    case COEFF:
+        delta = static_cast<int>((g.f - p.value.f) * 50 + static_cast <float> (0.5));
+        if (delta < 0) delta = - delta;
+        break;
+    case F_SIZE:
+        delta = static_cast<int> (g.f - p.value.f + static_cast <float> (0.5));
+        if(delta < 0) delta = - delta;
+        delta *= 50;
+        if(delta > 100) delta = 100;
+    }
+    return delta;
 }
 
 int knowledge::distance()
@@ -402,31 +442,7 @@ int knowledge::distance()
         foreach(temp, temp_comp.goal_model)
         {
             if(!temp.not_care) {
-                parameter p = temp_comp.dev.par[temp.index];
-                int delta_t, delta_a, delta_p;
-                switch (p.type) {
-                case TEMPERATURE:
-                    delta_t = temp.value - p.value;
-                    if(delta_t < 0) delta_t = - delta_t;
-                    if(delta_t > 100) delta_t = 100;
-                    sum+=delta_t;
-                    break;
-                case ON_OFF:
-                    if(temp.value != p.value)
-                        sum+=100;
-                    break;
-                case PERCENT:
-                    delta_p = temp.value - p.value;
-                    if(delta_p < 0) delta_p = - delta_p;
-                    sum+=delta_p;
-                    break;
-                case AREA:
-                    delta_a = temp.value - p.value;
-                    if(delta_a < 0) delta_a = - delta_a;
-                    delta_a *= 50;
-                    if(delta_a > 100) delta_a = 100;
-                    sum+=delta_a;
-                }
+                sum += delta(temp_comp.dev.par[temp.index], temp.value);
                 count++;
             }
         }
@@ -437,31 +453,7 @@ int knowledge::distance()
         foreach(temp, temp_comp.goal_model)
         {
             if(!temp.not_care) {
-                parameter p = temp_comp.dev.par[temp.index];
-                int delta_t, delta_a, delta_p;
-                switch (p.type) {
-                case TEMPERATURE:
-                    delta_t = temp.value - p.value;
-                    if(delta_t < 0) delta_t = - delta_t;
-                    if(delta_t > 100) delta_t = 100;
-                    sum+=delta_t;
-                    break;
-                case ON_OFF:
-                    if(temp.value != p.value)
-                        sum+=100;
-                    break;
-                case PERCENT:
-                    delta_p = temp.value - p.value;
-                    if(delta_p < 0) delta_p = - delta_p;
-                    sum+=delta_p;
-                    break;
-                case AREA:
-                    delta_a = temp.value - p.value;
-                    if(delta_a < 0) delta_a = - delta_a;
-                    delta_a *= 50;
-                    if(delta_a > 100) delta_a = 100;
-                    sum+=delta_a;
-                }
+                sum += delta(temp_comp.dev.par[temp.index], temp.value);
                 count++;
             }
         }

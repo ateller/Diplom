@@ -13,7 +13,7 @@ struct dev_parametres{int id; QList<parameter> par;};
 struct goal{int index; val value; bool not_care;};
 struct history_value {val value; int cycle_number;};
 struct history{int index; QList<history_value> series;};
-struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList<history>histories;};
+struct record{device* pointer; QList <QString> names; dev_parametres dev; QList<goal> goal_model; QList<history>histories; QList<par_class> classes;};
 
 struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
 

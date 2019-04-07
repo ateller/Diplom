@@ -26,7 +26,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         widget.cpp \
-    relation.cpp \
     sensor.cpp \
     effector.cpp \
     device.cpp \
@@ -39,7 +38,6 @@ SOURCES += \
 
 HEADERS += \
         widget.h \
-    relation.h \
     sensor.h \
     effector.h \
     device.h \

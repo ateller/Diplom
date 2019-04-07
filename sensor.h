@@ -20,6 +20,7 @@ public:
     QList<bool> get_changeables();
     int get_type();
     void sense(int t);
+    QList <par_class> get_classes();
 private:
     int temperature;
 };

@@ -15,6 +15,9 @@
 #define HEATER 2
 #define WINDOW 3
 
+#define HUMIDITY 1;
+//У нас уже есть температура, а влажности нету
+
 //Типы и id сенсоров всегда отрицательные, эффекторов - положительные
 
 //Объявлена всякая абстрактность для девайсов
@@ -26,6 +29,8 @@ union val { int i; float f; bool b;};
 struct parameter {int index; val value; int type;};
 //Имя и значение в текстовом виде
 
+struct par_class {int index; QList<int> classes;};
+
 class device : public QObject
 //Устройства. Сенсоры, эффекторы
 {
@@ -35,6 +40,7 @@ public:
     virtual QList<QString> get_names() = 0;
     virtual QList<bool> get_changeables() = 0;
     virtual int get_type() = 0;
+    virtual QList<par_class> get_classes() = 0;
     QString name;
     bool broken = 0;
     virtual void to_be_controlled(int p, val new_val) = 0;

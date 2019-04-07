@@ -86,6 +86,22 @@ int heater::effect()
     else return 0;
 }
 
+QList<par_class> heater::get_classes()
+{
+    QList<par_class> list;
+    par_class temp;
+
+    temp.index = 0;
+    temp.classes.append(TEMPERATURE);
+    list.append(temp);
+
+    temp.index = 1;
+    temp.classes.append(TEMPERATURE);
+    list.append(temp);
+
+    return list;
+}
+
 QList<QString> heater::get_names()
 {
     QList<QString> l;
@@ -189,6 +205,18 @@ window::result window::effect()
 
     e.f = static_cast<double> (mu) * sinus * static_cast<double> (size);
     return e;
+}
+
+QList<par_class> window::get_classes()
+{
+    QList<par_class> list;
+    par_class temp;
+
+    temp.index = 0;
+    temp.classes.append(TEMPERATURE);
+    list.append(temp);
+
+    return list;
 }
 
 QList<QString> window::get_names()

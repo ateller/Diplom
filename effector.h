@@ -28,6 +28,7 @@ public:
     void to_be_controlled(int p, val new_val);
     void exec_rule(QList<parameter> operation);
     int get_type();
+    QList <par_class> get_classes();
     int effect();
 private:
     int flow_t;
@@ -47,6 +48,7 @@ public:
     void to_be_controlled(int p, val new_val);
     void exec_rule(QList<parameter> operation);
     int get_type();
+    QList <par_class> get_classes();
     result effect();
 private:
     float size;

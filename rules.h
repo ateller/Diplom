@@ -20,7 +20,7 @@ struct condition{int dev_id; parameter p;};
 
 //Здесь тип отвечает за тип условия
 
-struct rule{QList<condition> pre; QList<parameter> operation; int period; int last_use;};
+struct rule{QList<condition> pre; QList<parameter> operation; int period; int last_use;QList<condition> post;};
 
 #endif // RULES_H
 

@@ -32,6 +32,7 @@ int knowledge::add(device *s)
 
     temp.names = s->get_names();
     temp.dev.par = s->get_list();
+    temp.classes = s->get_classes();
     QList <bool> c = s->get_changeables();
     foreach(temp_p, temp.dev.par)
     {
@@ -272,6 +273,15 @@ void knowledge::save_record(record temp, QDataStream* str)
             *str << h_v.cycle_number;
         }
     }
+
+    *str << temp.classes.size();
+
+    foreach(par_class temp_cl, temp.classes)
+    {
+        *str << temp_cl.index;
+        *str << temp_cl.classes.size();
+        foreach (int temp_class, temp_cl.classes) *str << temp_class;
+    }
 }
 
 int knowledge::import_from_file(QFile* f)
@@ -396,6 +406,26 @@ record knowledge::import_record(QDataStream* str)
 
         temp.histories.append(temp_h);
 
+    }
+
+    *str >> k;
+
+    for(int j = 0; j < k; j++)
+    {
+        par_class temp_cl;
+        *str >> temp_cl.index;
+
+        int m;
+        *str >> m;
+
+        for(int l = 0; l < m; l++)
+        {
+            int temp_class;
+            *str >> temp_class;
+            temp_cl.classes += temp_class;
+        }
+
+        temp.classes.append(temp_cl);
     }
 
     return temp;

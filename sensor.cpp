@@ -27,6 +27,19 @@ void thermometer::sense(int t)
     temperature = t;
 }
 
+QList<par_class> thermometer::get_classes()
+{
+    QList<par_class> list;
+    par_class temp;
+
+    temp.index = 0;
+    temp.classes.append(TEMPERATURE);
+
+    list.append(temp);
+
+    return list;
+}
+
 QList<QString> thermometer::get_names()
 {
     QList<QString> l;

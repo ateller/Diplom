@@ -43,6 +43,7 @@ public:
 private:
     bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
     int prognose_distance();//Дописать
+    bool check_par(int id, parameter p);
 signals:
     void system_update();
     void monitor_completed();

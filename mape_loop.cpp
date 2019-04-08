@@ -146,19 +146,9 @@ void mape_loop::plan()
 
                 foreach(parameter temp_o, (*r).operation)
                 {
-                    foreach(executing_rule temp_ex, k->exec_rules)
-                    {
-                        add = uses(rec.dev.id, temp_ex.operation, temp_ex.id, temp_o);
-                        if(add == false) break;
-                    }
+                    add = check_par(rec.dev.id, temp_o);
                     if(add == false) break;
-
-                    foreach(to_execute temp_ex, ex_plan)
-                    {
-                        add = uses(rec.dev.id, temp_ex.operation, temp_ex.id, temp_o);
-                        if(add == false) break;
-                    }
-                    if(add == false) break;
+                    //Проверяем, не используется ли где
                 }
                 if (add == false) continue;
                 //Проверили по операции
@@ -261,6 +251,9 @@ QList<splited> mape_loop::split(record r)
 
         parameter temp_p = r.dev.par[temp.index];
         //Берем его запись
+        if(r.dev.id > 0)
+            if(check_par(r.dev.id, temp_p) == false) continue;
+        //Если это параметр эффектора и он уже используется в правиле, он нам не нужен
 
         goal temp_g;
         foreach(temp_g, r.goal_model)
@@ -315,6 +308,20 @@ bool mape_loop::uses(int id_1, QList<parameter> operation, int id_2, parameter p
 int mape_loop::prognose_distance()
 {
     return 1;
+}
+
+bool mape_loop::check_par(int id, parameter p)
+{
+    foreach(executing_rule temp_ex, k->exec_rules)
+    {
+        if(uses(id, temp_ex.operation, temp_ex.id, p) == true) return false;
+    }
+
+    foreach(to_execute temp_ex, ex_plan)
+    {
+        if(uses(id, temp_ex.operation, temp_ex.id, p) == true) return false;
+    }
+    return true;
 }
 
 bool compare_cl(const class_list l1, const class_list l2)

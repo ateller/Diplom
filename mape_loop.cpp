@@ -75,7 +75,7 @@ void mape_loop::plan()
     //Проверяем дистанцию
 
     QList<class_list> classes;
-    QList<dev_parameters> infl;
+    applicable_rule applicable;
     classes.reserve(NUM_OF_CLASSES);
 
     foreach(record rec, k->env_model)
@@ -105,54 +105,86 @@ void mape_loop::plan()
         }
     }
 
+    std::sort(classes.begin(), classes.end(), compare_cl);
 
-    foreach(record rec, k->sys_model)
+    foreach(class_list temp, classes)
     {
-        effector* temp = qobject_cast<effector*> (rec.pointer);
-        rule temp_r;
-        int i = 0;
-        foreach(temp_r, temp->ruleset)
+        applicable.delta = -1;
+        foreach(record rec, k->sys_model)
         {
-            bool add = true;
-            condition temp_c;
-            foreach(temp_c, temp_r.pre)
+            QList<rule> rules = qobject_cast<effector*>(rec.pointer)->ruleset;
+            QList<rule>::iterator r;
+            int i;
+            for (i = 0, r = rules.begin(); r != rules.end(); i++, r++)
             {
-                parameter model;
-                if(temp_c.dev_id > 0)
-                    model = k->sys_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
-                else
-                    model = k->env_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
+                bool add = true;
+                foreach(condition temp_c, (*r).pre)
+                {
+                    parameter model;
 
-                switch (model.type) {
-                    case ON_OFF:
-                        if(model.value.b != temp_c.p.value.b) add = false;
+                    if(temp_c.dev_id > 0)
+                        model = k->sys_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
+                    else
+                        model = k->env_model[indexof(temp_c.dev_id)].dev.par[temp_c.p.index];
+
+                    switch (model.type) {
+                        case ON_OFF:
+                            if(model.value.b != temp_c.p.value.b) add = false;
+                            break;
+                    case PERCENT:
+                    case TEMPERATURE:
+                        add = compare(model.value.i, temp_c.p.value.i, temp_c.p.type);
                         break;
-                case PERCENT:
-                case TEMPERATURE:
-                    add = compare(model.value.i, temp_c.p.value.i, temp_c.p.type);
-                    break;
-                case COEFF:
-                case F_SIZE:
-                    add = compare(model.value.f, temp_c.p.value.f, temp_c.p.type);
+                    case COEFF:
+                    case F_SIZE:
+                        add = compare(model.value.f, temp_c.p.value.f, temp_c.p.type);
+                    }
+                    if(add == false) break;
                 }
+                if (add == false) continue;
+                //Проверили по условиям
 
-                if(add == false) break;
+                foreach(parameter temp_o, (*r).operation)
+                {
+                    foreach(executing_rule temp_ex, k->exec_rules)
+                    {
+                        add = uses(rec.dev.id, temp_ex.operation, temp_ex.id, temp_o);
+                        if(add == false) break;
+                    }
+                    if(add == false) break;
+
+                    foreach(to_execute temp_ex, ex_plan)
+                    {
+                        add = uses(rec.dev.id, temp_ex.operation, temp_ex.id, temp_o);
+                        if(add == false) break;
+                    }
+                    if(add == false) break;
+                }
+                if (add == false) continue;
+                //Проверили по операции
+
+               int delta = prognose_distance(); //функцию допишу
+               if (delta <= 0) continue;
+               if (delta > applicable.delta)
+               {
+                   applicable.id = rec.dev.id;
+                   applicable.index = i;
+                   applicable.delta = delta;
+                   applicable.r = (*r);
+               }
             }
-            if(k->loops_counter - temp_r.last_use < temp_r.period)
-            {
-                add = false;
-            }
-            if(add == true)
-            {
-                to_execute r;
-                r.id = rec.dev.id;
-                r.operation = temp_r.operation;
-                r.timer = temp_r.period;
-                temp->ruleset[i].last_use = k->loops_counter;
-                ex_plan += r;
-            }
-            i++;
         }
+
+        if(applicable.delta > -1)
+        {
+            to_execute r;
+            r.id = applicable.id;
+            r.operation = applicable.r.operation;
+            r.timer = applicable.r.period;
+            qobject_cast<effector*> (k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
+            ex_plan += r;
+        }
+
     }
     emit plan_completed(ex_plan.size());
 }
@@ -208,7 +240,7 @@ int mape_loop::import_knowledge(QFile *f)
 
 }
 
-to_execute *mape_loop::generate_rule()
+rule* mape_loop::generate_rule()
 {
     return nullptr;
 }
@@ -267,4 +299,26 @@ QList<splited> mape_loop::split(record r)
     }
 
     return list;
+}
+
+bool mape_loop::uses(int id_1, QList<parameter> operation, int id_2, parameter p)
+{
+    if(id_1 != id_2) return false;
+
+    foreach(parameter temp, operation)
+    {
+        if(temp.index == p.index) return true;
+    }
+    return false;
+}
+
+int mape_loop::prognose_distance()
+{
+    return 1;
+}
+
+bool compare_cl(const class_list l1, const class_list l2)
+{
+    if(l1.delta > l2.delta) return true;
+    else return false;
 }

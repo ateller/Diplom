@@ -17,6 +17,8 @@ struct splited{class_list_el el; int delta;};
 
 struct class_list{QList<class_list_el> list; int delta;};
 
+struct applicable_rule{int id; int index; rule r; int delta;};
+
 class mape_loop : public QObject
 {
 //Петля
@@ -36,9 +38,11 @@ public:
     int dist;
     int tolerance;
     int import_knowledge(QFile *f);
-    to_execute* generate_rule();
+    rule* generate_rule();//Дописать
     QList<splited> split(record);
 private:
+    bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
+    int prognose_distance();//Дописать
 signals:
     void system_update();
     void monitor_completed();
@@ -50,5 +54,6 @@ public slots:
 };
 
 device* new_device(int type);
+bool compare_cl(const class_list l1, const class_list l2);
 
 #endif // MAPE_LOOP_H

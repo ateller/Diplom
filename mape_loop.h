@@ -7,7 +7,11 @@
 
 //Это штука, которая всем управляет, у нее есть база данных и функции петли
 
+#define NUM_OF_CLASSES 1
+
 struct to_execute {int id; QList<parameter> operation; int timer;};
+
+struct class_list {dev_parameters dev; QList<QList<history_value>> hist;};
 
 class mape_loop : public QObject
 {
@@ -28,6 +32,8 @@ public:
     int dist;
     int tolerance;
     int import_knowledge(QFile *f);
+    to_execute* generate_rule();
+    QList<class_list> split(record);
 private:
 signals:
     void system_update();

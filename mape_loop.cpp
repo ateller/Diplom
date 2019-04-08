@@ -74,6 +74,8 @@ void mape_loop::plan()
     if(dist <= tolerance) return;
     //Проверяем дистанцию
 
+
+
     record rec;
     foreach(rec, k->sys_model)
     {
@@ -175,4 +177,42 @@ int mape_loop::import_knowledge(QFile *f)
         return 1;
     }
 
+}
+
+to_execute *mape_loop::generate_rule()
+{
+    return nullptr;
+}
+
+QList<class_list> mape_loop::split(record r)
+{
+    QList<class_list> list;
+    list.reserve(NUM_OF_CLASSES);
+
+    foreach(par_class temp, r.classes)//Для каждого параметра, имебщего класс
+    {
+        parameter temp_p = r.dev.par[temp.index];
+        //Берем его запись
+        QList<history_value> temp_hv;
+        //Берем его историю
+        foreach(history temp_h, r.histories)
+        {
+            if(temp_h.index == temp.index)
+            {
+                temp_hv = temp_h.series;
+            }
+        }
+
+        foreach(int i, temp.classes)//Для каждого класса этого параметра
+        {
+            list[i].dev.id = r.dev.id;
+            //Кладем в нужный класс его id
+            list[i].dev.par.append(temp_p);
+            //Его запись
+            list[i].hist.append(temp_hv);
+            //Его историю
+        }
+    }
+
+    return list;
 }

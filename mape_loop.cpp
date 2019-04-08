@@ -3,7 +3,6 @@
 mape_loop::mape_loop()
 {
     tolerance = 3;
-    must_adapt = false;
     k = new knowledge;
 }
 
@@ -66,15 +65,15 @@ void mape_loop::analysis()
     }
 
     dist = k->distance();
-    if(dist>tolerance)
-        must_adapt = true;
-    else
-        must_adapt = false;
     emit analysis_completed();
 }
 
 void mape_loop::plan()
 {
+    if(dist <= tolerance) return;
+    //Проверяем дистанцию
+
+
     ex_plan.clear();
     record rec;
     foreach(rec, k->sys_model)
@@ -151,10 +150,8 @@ void mape_loop::loop()
 {
     monitor();
     analysis();
-    if(must_adapt == true) {
-        plan();
-        execute();
-    }
+    plan();
+    execute();
 }
 
 int mape_loop::import_knowledge(QFile *f)

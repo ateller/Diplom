@@ -27,7 +27,6 @@ public:
     int indexof(int);
     int dist;
     int tolerance;
-    bool must_adapt;
     int import_knowledge(QFile *f);
 private:
 signals:

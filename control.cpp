@@ -7,10 +7,6 @@ control::control(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //ui->addwidget->hide();
-    //ui->Goal_widget->hide();
-    //ui->start->setDisabled(1);
-
     QMenuBar *m = new QMenuBar(this);
     layout()->setMenuBar(m);
 
@@ -35,21 +31,6 @@ control::control(QWidget *parent) :
 
     connect(start, SIGNAL(triggered()), &w, SLOT(show()));
     start->setEnabled(0);
-
-    //connect(ui->start, SIGNAL(clicked(bool)), ui->set, SIGNAL(clicked(bool)));
-    //По нажатию старта открывается окно и выключается добавление
-
-    //connect(ui->add, SIGNAL(clicked()), ui->addwidget, SLOT(show()));
-    //connect(ui->add, SIGNAL(clicked()), ui->Goal_widget, SLOT(hide()));
-    //По нажатию add добавится компонент и закроется окно с целью
-
-    //connect(ui->set, SIGNAL(clicked()), ui->Goal_widget, SLOT(show()));
-    //connect(ui->set, SIGNAL(clicked()), ui->addwidget, SLOT(hide()));
-    //По нажатую set открывается редактирование цели
-    //connect(ui->pushButton_3, SIGNAL(clicked(bool)),ui->pushButton_3, SLOT(setEnabled(bool)));
-
-    //connect(ui->buttonGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(add_record(QAbstractButton*)));
-    //Кнопки добавления компонентов
 
     connect(manager.k, SIGNAL(added(int)), SLOT(upd_goal(int)));
 

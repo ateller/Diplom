@@ -90,7 +90,7 @@ void Widget::monitor()
 void Widget::analysis()
 {
     QString status = "Analysis status: tolerance = " + QString::number(manager->tolerance) + ", distance = " + QString::number(manager->dist);
-    if(manager->must_adapt == true)
+    if(manager->dist > manager->tolerance)
         status+=", adaptation is necessary";
     else {
         status+=", adaptation is not necessary";

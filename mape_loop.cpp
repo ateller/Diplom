@@ -74,10 +74,39 @@ void mape_loop::plan()
     if(dist <= tolerance) return;
     //Проверяем дистанцию
 
+    QList<class_list> classes;
+    QList<dev_parameters> infl;
+    classes.reserve(NUM_OF_CLASSES);
+
+    foreach(record rec, k->env_model)
+    {
+        int i = 0;
+        foreach(splited temp, split(rec))
+        {
+            if(temp.delta > 0)
+            {
+                classes[i].list.append(temp.el);
+                classes[i].delta += temp.delta;
+            }
+            i++;
+        }
+    }
+    foreach(record rec, k->sys_model)
+    {
+        int i = 0;
+        foreach(splited temp, split(rec))
+        {
+            if(temp.delta > 0)
+            {
+                classes[i].list.append(temp.el);
+                classes[i].delta += temp.delta;
+            }
+            i++;
+        }
+    }
 
 
-    record rec;
-    foreach(rec, k->sys_model)
+    foreach(record rec, k->sys_model)
     {
         effector* temp = qobject_cast<effector*> (rec.pointer);
         rule temp_r;
@@ -184,15 +213,38 @@ to_execute *mape_loop::generate_rule()
     return nullptr;
 }
 
-QList<class_list> mape_loop::split(record r)
+QList<splited> mape_loop::split(record r)
 {
-    QList<class_list> list;
+    QList<splited> list;
     list.reserve(NUM_OF_CLASSES);
+    for(int i = 0; i < NUM_OF_CLASSES; i++)
+    {
+        list[i].delta = 0;
+        list[i].el.dev.id = r.dev.id;
+    }
+    //Обнуляем дельты и пишем id
 
     foreach(par_class temp, r.classes)//Для каждого параметра, имебщего класс
     {
+
         parameter temp_p = r.dev.par[temp.index];
         //Берем его запись
+
+        goal temp_g;
+        foreach(temp_g, r.goal_model)
+        {
+            if(temp_g.index == temp.index)
+            {
+                break;
+            }
+        }
+        //Ищем его цель
+        if (temp_g.not_care == true) continue;
+        //Если его цель не имеет значения, он нам не нужен
+        int delta = k->delta(temp_p,temp_g.value);
+        if(delta == 0) continue;
+        //Если он в норме, тоже не нужен
+
         QList<history_value> temp_hv;
         //Берем его историю
         foreach(history temp_h, r.histories)
@@ -200,17 +252,17 @@ QList<class_list> mape_loop::split(record r)
             if(temp_h.index == temp.index)
             {
                 temp_hv = temp_h.series;
+                break;
             }
         }
 
         foreach(int i, temp.classes)//Для каждого класса этого параметра
         {
-            list[i].dev.id = r.dev.id;
-            //Кладем в нужный класс его id
-            list[i].dev.par.append(temp_p);
+            list[i].el.dev.par.append(temp_p);
             //Его запись
-            list[i].hist.append(temp_hv);
+            list[i].el.hist.append(temp_hv);
             //Его историю
+            list[i].delta += delta;
         }
     }
 

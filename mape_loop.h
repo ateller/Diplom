@@ -11,7 +11,11 @@
 
 struct to_execute {int id; QList<parameter> operation; int timer;};
 
-struct class_list {dev_parameters dev; QList<QList<history_value>> hist;};
+struct class_list_el {dev_parameters dev; QList<QList<history_value>> hist;};
+
+struct splited{class_list_el el; int delta;};
+
+struct class_list{QList<class_list_el> list; int delta;};
 
 class mape_loop : public QObject
 {
@@ -33,7 +37,7 @@ public:
     int tolerance;
     int import_knowledge(QFile *f);
     to_execute* generate_rule();
-    QList<class_list> split(record);
+    QList<splited> split(record);
 private:
 signals:
     void system_update();

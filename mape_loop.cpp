@@ -70,11 +70,10 @@ void mape_loop::analysis()
 
 void mape_loop::plan()
 {
+    ex_plan.clear();
     if(dist <= tolerance) return;
     //Проверяем дистанцию
 
-
-    ex_plan.clear();
     record rec;
     foreach(rec, k->sys_model)
     {

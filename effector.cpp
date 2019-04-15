@@ -13,7 +13,8 @@ void effector::delete_rule(int i)
 heater::heater()
 {
     flow_t = 20;
-    enabled = 0;
+    wind_power = 0;
+    vel = 2;
     update();
 }
 
@@ -28,8 +29,13 @@ void heater::update()
     list += temp;
 
     temp.index = 1;
-    temp.value.b = enabled;
-    temp.type = ON_OFF;
+    temp.value.i = wind_power;
+    temp.type = PERCENT;
+    list += temp;
+
+    temp.index = 2;
+    temp.value.f = vel;
+    temp.type = F_SIZE;
     list += temp;
 }
 
@@ -40,7 +46,10 @@ void heater::to_be_controlled(int p, val new_val)
         flow_t = new_val.i;
         break;
     case 1:
-        enabled = new_val.b;
+        wind_power = new_val.i;
+        break;
+    case 2:
+        vel = new_val.f;
         break;
     }
 }
@@ -51,7 +60,21 @@ void heater::exec_rule(QList<parameter> operation)
     foreach (temp, operation) {
         if(temp.index)
         {
-            enabled = temp.value.b;
+            switch (temp.type) {
+            case INCREASE:
+                wind_power += temp.value.i;
+                break;
+            case DECREASE:
+                wind_power -= temp.value.i;
+                break;
+            case ASSIGN:
+                wind_power = temp.value.i;
+                break;
+            }
+            if(wind_power < 0)
+                wind_power = 0;
+            if(wind_power > 100)
+                wind_power = 100;
         }
         else
         {
@@ -79,11 +102,12 @@ int heater::get_type()
     return HEATER;
 }
 
-int heater::effect()
+heater::result heater::effect()
 {
-    if(enabled)
-        return flow_t;
-    else return 0;
+    result r;
+    r.vol = (vel/100) * wind_power;
+    r.t = flow_t;
+    return r;
 }
 
 QList<par_class> heater::get_classes()
@@ -106,7 +130,8 @@ QList<QString> heater::get_names()
 {
     QList<QString> l;
     l.append("Flow temperature");
-    l.append("Heat enabled");
+    l.append("Wind power");
+    l.append("Max wind speed");
     return l;
 }
 
@@ -115,6 +140,7 @@ QList<bool> heater::get_changeables()
     QList<bool> l;
     l.append(true);
     l.append(true);
+    l.append(false);
     return l;
 }
 

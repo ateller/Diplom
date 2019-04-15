@@ -76,7 +76,12 @@ void mape_loop::plan()
 
     QList<class_list> classes;
     applicable_rule applicable;
-    classes.reserve(NUM_OF_CLASSES);
+    for(int i = 0; i < NUM_OF_CLASSES; i++)
+    {
+        class_list t;
+        t.delta = 0;
+        classes.append(t);
+    }
 
     foreach(record rec, k->env_model)
     {
@@ -241,8 +246,10 @@ QList<splited> mape_loop::split(record r)
     list.reserve(NUM_OF_CLASSES);
     for(int i = 0; i < NUM_OF_CLASSES; i++)
     {
-        list[i].delta = 0;
-        list[i].el.dev.id = r.dev.id;
+        splited t;
+        t.delta = 0;
+        t.el.dev.id = r.dev.id;
+        list.append(t);
     }
     //Обнуляем дельты и пишем id
 

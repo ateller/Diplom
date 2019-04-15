@@ -14,6 +14,8 @@ struct history_value {val value; int cycle_number;};
 struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parameters dev; QList<goal> goal_model; QList<history>histories; QList<par_class> classes;};
 
+//struct relation{val d1; val d2};
+
 struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
 
 class knowledge: public QObject

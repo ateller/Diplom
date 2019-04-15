@@ -22,6 +22,7 @@ class heater : public effector
 Q_OBJECT
 public:
     heater();
+    struct result {float vol; int t;};
     void update();
     QList<QString> get_names();
     QList<bool> get_changeables();
@@ -29,11 +30,14 @@ public:
     void exec_rule(QList<parameter> operation);
     int get_type();
     QList <par_class> get_classes();
-    int effect();
+    result effect();
 private:
     int flow_t;
     //На сколько градусов поток воздуха теплее, чем в комнате
-    bool enabled;
+    int wind_power;
+    //Скорость вращения вентилятора
+    float vel;
+    //Максимальная скорость потока воздуха
 };
 
 class window : public effector

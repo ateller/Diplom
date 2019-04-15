@@ -91,11 +91,11 @@ void imitation::effect(effector* eff)
     }
     else if(eff->get_type() == HEATER)
     {
-        int t = qobject_cast<heater*>(eff)->effect();
-        if (t) {
-            double a = 1;
-            double vel = 1;
-            temperature = (temperature * (v - a*vel) + t * a*vel)/v;
+        heater::result r = qobject_cast<heater*>(eff)->effect();\
+        if (r.t > temperature)
+        {
+            double a = static_cast<double>(r.vol) * 5;
+            temperature = (temperature * (v - a) + r.t * a)/v;
         }
     }
     upd();

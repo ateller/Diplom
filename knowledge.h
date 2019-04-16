@@ -13,6 +13,7 @@ struct goal{int index; val value; bool not_care;};
 struct history_value {val value; int cycle_number;};
 struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parameters dev; QList<goal> goal_model; QList<history>histories; QList<par_class> classes;};
+struct intermed_dist{int sum; int count;};
 
 //struct relation{val d1; val d2};
 
@@ -24,7 +25,8 @@ Q_OBJECT
 public:
     int id_counter;
     int distance();
-    int distance(QList<parameter> one, QList <parameter> two);
+    int distance(QList<dev_parameters> one, QList<dev_parameters> two);
+    intermed_dist distance(QList<parameter> one, QList <parameter> two);
     knowledge();
     ~knowledge();
     int add(device* s);

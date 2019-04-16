@@ -488,5 +488,83 @@ int knowledge::distance()
             }
         }
     }
-    return sum/count;
+    if(count) return sum/count;
+    else return 0;
+}
+
+int knowledge::distance(QList<dev_parameters> one, QList<dev_parameters> two)
+{
+    int sum = 0, count = 0;
+    if(one.size() < two.size())
+    {
+        foreach(dev_parameters temp, one)
+        {
+            foreach(dev_parameters temp2, two)
+            {
+                if(temp.id == temp2.id)
+                {
+                    intermed_dist d = distance(temp.par, temp2.par);
+                    sum+=d.sum;
+                    count+=d.count;
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        foreach(dev_parameters temp, two)
+        {
+            foreach(dev_parameters temp2, one)
+            {
+                if(temp.id == temp2.id)
+                {
+                    intermed_dist d = distance(temp.par, temp2.par);
+                    sum+=d.sum;
+                    count+=d.count;
+                    break;
+                }
+            }
+        }
+    }
+    if(count) return sum/count;
+    else return 0;
+}
+
+intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
+{
+    intermed_dist d;
+    d.sum = 0;
+    d.count = 0;
+    if(one.size() < two.size())
+    {
+        foreach(parameter temp, one)
+        {
+            foreach(parameter temp2, two)
+            {
+                if((temp.index = temp2.index) && (temp.type == temp2.type))
+                {
+                    d.sum += delta(temp,temp2.value);
+                    d.count++;
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        foreach(parameter temp, two)
+        {
+            foreach(parameter temp2, one)
+            {
+                if((temp.index = temp2.index) && (temp.type == temp2.type))
+                {
+                    d.sum += delta(temp,temp2.value);
+                    d.count++;
+                    break;
+                }
+            }
+        }
+    }
+    return d;
 }

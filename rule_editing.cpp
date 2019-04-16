@@ -307,17 +307,17 @@ void rule_editing::add_instr()
             QDoubleSpinBox* l = qobject_cast<QDoubleSpinBox*>(par->itemAt(3)->widget());
             n.value.f = static_cast<float> (l->value());
             l->setEnabled(1);
-            connect(l, SIGNAL(valueChanged(int)), SLOT(change_new_val(int)));
+            connect(l, SIGNAL(valueChanged(double)), SLOT(change_new_val(double)));
         }
         else {
             QSpinBox* l = qobject_cast<QSpinBox*>(par->itemAt(3)->widget());
             n.value.i = l->value();
             l->setEnabled(1);
-            connect(l, SIGNAL(valueChanged(double)), SLOT(change_new_val(double)));
+            connect(l, SIGNAL(valueChanged(int)), SLOT(change_new_val(int)));
         }
 
         QComboBox *type = qobject_cast<QComboBox*>(par->itemAt(2)->widget());
-        connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_cond_mode(int)));
+        connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_op_mode(int)));
         type->setEnabled(1);
         //Включаем выбор
     }

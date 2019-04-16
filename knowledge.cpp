@@ -531,6 +531,58 @@ int knowledge::distance(QList<dev_parameters> one, QList<dev_parameters> two)
     else return 0;
 }
 
+int knowledge::distance(int loop)
+{
+    int sum = 0, count = 0;
+    record temp_comp;
+    foreach(temp_comp, env_model)
+    {
+        foreach (history h,temp_comp.histories)
+        {
+            foreach(parameter temp, temp_comp.dev.par)
+            {
+                if(temp.index == h.index)
+                {
+                    QList<history_value>::iterator i = h.series.begin();
+                    for(; i != h.series.end(); i++)
+                    {
+                        if((*i).cycle_number > loop)
+                        {
+                            count++;
+                            sum+=delta(temp,(*(i-1)).value);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    foreach(temp_comp, sys_model)
+    {
+        foreach (history h,temp_comp.histories)
+        {
+            foreach(parameter temp, temp_comp.dev.par)
+            {
+                if(temp.index == h.index)
+                {
+                    QList<history_value>::iterator i = h.series.begin();
+                    for(; i != h.series.end(); i++)
+                    {
+                        if((*i).cycle_number > loop)
+                        {
+                            count++;
+                            sum+=delta(temp,(*(i-1)).value);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    if(count) return sum/count;
+    else return 0;
+}
+
 intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
 {
     intermed_dist d;
@@ -567,4 +619,9 @@ intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
         }
     }
     return d;
+}
+
+relation knowledge::correlate(QList<history_value> dep, QList<history_value> infl, int type)
+{
+
 }

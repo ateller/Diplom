@@ -15,7 +15,7 @@ struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parameters dev; QList<goal> goal_model; QList<history>histories; QList<par_class> classes;};
 struct intermed_dist{int sum; int count;};
 
-//struct relation{val d1; val d2};
+struct relation{val d1; val d2; int time;};
 
 struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
 
@@ -26,7 +26,9 @@ public:
     int id_counter;
     int distance();
     int distance(QList<dev_parameters> one, QList<dev_parameters> two);
+    int distance(int loop);
     intermed_dist distance(QList<parameter> one, QList <parameter> two);
+    relation correlate(QList<history_value> dep, QList<history_value> infl, int type);
     knowledge();
     ~knowledge();
     int add(device* s);

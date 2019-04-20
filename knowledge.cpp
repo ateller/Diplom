@@ -449,11 +449,11 @@ int knowledge::delta(parameter p, val g)
         if(delta < 0) delta = - delta;
         break;
     case COEFF:
-        delta = static_cast<int>((g.f - p.value.f) * 50 + static_cast <float> (0.5));
+        delta = static_cast<int>(round(static_cast<double>(g.f - p.value.f) * 50));
         if (delta < 0) delta = - delta;
         break;
     case F_SIZE:
-        delta = static_cast<int> (g.f - p.value.f + static_cast <float> (0.5));
+        delta = static_cast<int>(round(static_cast<double>(g.f - p.value.f)));
         if(delta < 0) delta = - delta;
         delta *= 50;
         if(delta > 100) delta = 100;
@@ -621,7 +621,260 @@ intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
     return d;
 }
 
-relation knowledge::correlate(QList<history_value> dep, QList<history_value> infl, int type)
+relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, int index, int type, int cl, val d, bool whose)
 {
+    QList<history_value> infl;
+    QList<QList<history_value>::iterator> interferences;
+    foreach(record r, sys_model)
+    {
+        foreach(history h, r.histories)
+        {
+            if((r.dev.id == id)&&(h.index == index))
+            {
+                infl = h.series;
+            }
+            else {
+                foreach(par_class p, r.classes)
+                {
+                    if(p.index == h.index)
+                    {
+                        foreach(int i, p.classes)
+                        {
+                            if (i == cl)
+                            {
+                                interferences.append(h.series.begin());
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    QList<history_value>::iterator i = dep.begin() + 1;
+    //Ставим итератор зависимого во второе изменение (первое - это просто старт)
+    QList<history_value>::iterator inf = infl.begin() + 1;
+    //И влияющего тоже
+    QList<weighed_rel> relations;
 
+    for(;inf != infl.end(); inf++)
+    {
+        history_value v = *inf;
+        int loop = v.cycle_number;
+        //Находим, где было очередное изменение
+        for(; i != (dep.end() - 1); i++)
+        {
+            if((*(i + 1)).cycle_number > loop) break;
+            //
+        }
+        if (i == (dep.end() - 1)) break;
+        //Если дошли до конца истории, заканчиваем
+
+        if((*i).cycle_number > loop) continue;
+        //Это значит, история зависимого началась позже истории влияющего, надо проехать вперед
+
+        if(is_peace(i,dep_type) == false) continue;
+        //Если изменение случилось не в покое, не подходит
+
+        QList<history_value>::iterator j = i + 1;
+        //Итое может быть как угодно, а на j изменение должно было отразиться.
+        for(;j != dep.end(); j++) if(is_peace(j,dep_type)) break;
+        //Нашли следующий период покоя после возмущения
+        if(j == dep.end()) break;
+        //Если не нашли, а просто дошли до конца, то больше искать смысла ничего нет
+
+        int loop_end = (*(j-1)).cycle_number;
+
+        bool interrupted = false;
+        QList<QList<history_value>::iterator>::iterator in = interferences.begin();
+        for(; in != interferences.end(); in++)
+        {
+            for(;(*(*in)).cycle_number < (loop - 100); (*in)++);
+            if((*(*in)).cycle_number < loop_end)
+            {
+                interrupted = true;
+                break;
+            }
+        }
+        if(interrupted) continue;
+        //Если во время активного периода менялся кто-то еще, этот период нам не нужон
+        //И если у нас в итоге остался период, мы кладем его к другим нормальным периодам
+
+        val d_d, d_i;
+        d_d = subtract((*i).value, (*(j-1)).value, dep_type);
+        d_i = subtract((*(inf - 1)).value ,v.value, type);
+        relations.append(norm_rel(loop,loop_end,d_d,d_i,dep_type,type,whose,d));
+    }
+
+    if(relations.isEmpty()) return nullptr;
+    //Ничего не нашли
+
+    int sum = 0, count = 0;
+    double sum_d = 0, sum_i = 0;
+    foreach(weighed_rel r, relations)
+    {
+        sum+=r.r.time * r.w;
+        sum_d+=add_val(r.r.d1, r.w, dep_type);
+        sum_i+=add_val(r.r.d2, r.w, type);
+        count+=r.w;
+    }
+    if(count == 0) return nullptr;
+    //Опять ничего не нашли
+
+    relation* res = new relation;
+    res->time = sum/count;
+    res->d1 = avg(sum_d,count,dep_type);
+    res->d2 = avg(sum_i,count,type);
+    return res;
+}
+
+bool knowledge::is_peace(QList<history_value>::iterator i, int type)
+{
+    int len = (*i).cycle_number - (*(i-1)).cycle_number;
+    double derivative = 0;
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        derivative = ((*i).value.i - (*(i-1)).value.i)/static_cast<double>(len);
+        break;
+    case ON_OFF:
+        derivative = ((*i).value.b - (*(i-1)).value.b)/static_cast<double>(len);
+        break;
+    case COEFF:
+    case F_SIZE:
+        derivative = static_cast<double>((*i).value.f - (*(i-1)).value.f)/static_cast<double>(len);
+        break;
+    }
+    if(fabs(derivative) <= PEACE_TRESHOLD) return true;
+    else return false;
+}
+
+weighed_rel knowledge::norm_rel(int start, int fin, val d_d, val d_i, int type_d, int type_i, bool whose, val must)
+{
+    weighed_rel rel;
+    rel.r.time = fin - start;
+    double k;
+    if(whose)
+    {
+        k = calc_k(d_d, type_d, must);
+        rel.r.d1 = d_d;
+        rel.r.d2 = apply_k(k, type_i, d_i);
+    }
+    else
+    {
+        k = calc_k(d_i, type_i, must);
+        rel.r.d2 = d_i;
+        rel.r.d1 = apply_k(k, type_d, d_d);
+    }
+    rel.w = 100 - distance(start);
+    if(rel.w < 0) rel.w = 0;
+    return rel;
+}
+
+double knowledge::calc_k(val v, int t, val m)
+{
+    double k = 1;
+    switch (t)
+    {
+    case TEMPERATURE:
+    case PERCENT:
+        k = m.i/static_cast<double>(v.i);
+        break;
+    case ON_OFF:
+        if(v.b != m.b) k = -1;
+        else k = 1;
+        break;
+    case COEFF:
+    case F_SIZE:
+        k = static_cast<double>(m.f)/static_cast<double>(v.f);
+        break;
+    }
+    return k;
+}
+
+val knowledge::apply_k(double k, int t, val v)
+{
+    val r;
+    switch (t)
+    {
+    case TEMPERATURE:
+    case PERCENT:
+        r.i = static_cast<int>(round(v.i * k));
+        break;
+    case ON_OFF:
+        if(k < 0) r.b = !v.b;
+        else r.b = v.b;
+        break;
+    case COEFF:
+    case F_SIZE:
+        r.f = static_cast<float>(static_cast<double>(v.f) * k);
+        break;
+    }
+    return r;
+}
+
+val knowledge::subtract(val what, val from, int type)
+{
+    val res;
+    switch (type)
+    {
+    case TEMPERATURE:
+    case PERCENT:
+        res.i = from.i - what.i;
+        break;
+    case ON_OFF:
+        if(!what.b && from.b) res.b = true;
+        //Увеличилось
+        else res.b = false;
+        //Уменьшилось
+        break;
+    case COEFF:
+    case F_SIZE:
+        res.f = from.f - what.f;
+        break;
+    }
+    return res;
+}
+
+double knowledge::add_val(val what, int weight, int type)
+{
+    double res = 0;
+    switch (type)
+    {
+    case TEMPERATURE:
+    case PERCENT:
+        res = static_cast<double>(what.i) * weight;
+        break;
+    case ON_OFF:
+        if(what.b) res = 1.0 * weight;
+        //Увеличилось
+        else res = -1.0 * weight;
+        //Уменьшилось
+        break;
+    case COEFF:
+    case F_SIZE:
+        res = static_cast<double>(what.f) * weight;
+        break;
+    }
+    return res;
+}
+
+val knowledge::avg(double sum, int count, int type)
+{
+    val res;
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        res.i = static_cast<int>(round(sum/count));
+        break;
+    case ON_OFF:
+        if((sum/count) > 0) res.b = true;
+        else res.b = false;
+        break;
+    case COEFF:
+    case F_SIZE:
+        res.f = static_cast<float>(sum/count);
+        break;
+    }
+    return res;
 }

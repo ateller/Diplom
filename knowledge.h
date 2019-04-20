@@ -8,6 +8,8 @@
 
 //База данных. Модель s, модель d. Для каждого реального параметра целевое значение
 
+#define PEACE_TRESHOLD 0.01
+
 struct dev_parameters{int id; QList<parameter> par;};
 struct goal{int index; val value; bool not_care;};
 struct history_value {val value; int cycle_number;};
@@ -16,6 +18,7 @@ struct record{device* pointer; QList <QString> names; dev_parameters dev; QList<
 struct intermed_dist{int sum; int count;};
 
 struct relation{val d1; val d2; int time;};
+struct weighed_rel{relation r; int w;};
 
 struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
 
@@ -28,7 +31,8 @@ public:
     int distance(QList<dev_parameters> one, QList<dev_parameters> two);
     int distance(int loop);
     intermed_dist distance(QList<parameter> one, QList <parameter> two);
-    relation correlate(QList<history_value> dep, QList<history_value> infl, int type);
+    relation* correlate(QList<history_value> dep, int dep_type, int id, int index, int type, int cl, val d, bool whose);
+    int predict();
     knowledge();
     ~knowledge();
     int add(device* s);
@@ -54,6 +58,13 @@ signals:
     void added(int);
 private:
     void upd_history(record);
+    bool is_peace(QList<history_value>::iterator i, int type);
+    weighed_rel norm_rel(int start, int fin, val d_d, val d_i, int type_d, int type_i, bool whose, val must);
+    double calc_k(val v, int t, val m);
+    val apply_k(double k, int t, val v);
+    val subtract(val what, val from, int type);
+    double add_val(val what, int weight, int type);
+    val avg(double sum, int count, int type);
 };
 
 template<typename v>

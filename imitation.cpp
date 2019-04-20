@@ -106,7 +106,7 @@ void imitation::sense(sensor* sen)
     if(qobject_cast<thermometer*>(sen) != nullptr)
     {
         if (!sen->broken)
-            qobject_cast<thermometer*>(sen)->sense(static_cast<int>(temperature+0.5));
+            qobject_cast<thermometer*>(sen)->sense(static_cast<int>(round(temperature)));
         return;
     }
 }

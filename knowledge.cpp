@@ -461,6 +461,184 @@ int knowledge::delta(parameter p, val g)
     return delta;
 }
 
+QList<post_cond> knowledge::predict(int id, QList<parameter> operation)
+{
+    QList<post_cond> post;
+    QList<parameter> changes;
+    record r = sys_model[indexof(id)];
+    QList<par_class> classes;
+
+    int i = 0;
+    foreach(parameter o, operation)
+    {
+        post_cond p;
+        p.dev_id = r.dev.id;
+        p.time = 1;
+
+        parameter par = r.dev.par[o.index];
+        if (o.type == ASSIGN)
+        {
+            //Если ассигн, то считаем разницу между тем, что есть сейчас и что будет
+            switch (par.type) {
+            case TEMPERATURE:
+            case PERCENT:
+                par.value.i = o.value.i - par.value.i;
+                p.p = get_post(par);
+                break;
+            case ON_OFF:
+                if(par.value.b == o.value.b)
+                {
+                    p.p = par;
+                    p.p.type = SAME;
+                }
+                else if (!par.value.b && o.value.b) {
+                    par.value.b = 1;
+                    p.p = par;
+                    p.p.type = INCREASE;
+                }
+                else {
+                    par.value.b = 0;
+                    p.p = par;
+                    p.p.type = DECREASE;
+                }
+                break;
+            case COEFF:
+            case F_SIZE:
+                par.value.f = o.value.f - par.value.f;
+                p.p = get_post(par);
+                break;
+            }
+        }
+        else {
+            p.p = o;
+            //Дикриз инкриз остался тот же
+            //Еще нам нужна дельта со знаком
+            if (o.type == DECREASE)
+            {
+                switch (par.type) {
+                case TEMPERATURE:
+                case PERCENT:
+                    par.value.i = -o.value.i;
+                    break;
+                case ON_OFF:
+                    par.value.b = 0;
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    par.value.f = -o.value.f;
+                    break;
+                }
+            }
+            else
+            {
+                switch (par.type) {
+                case TEMPERATURE:
+                case PERCENT:
+                    par.value.i = o.value.i;
+                    break;
+                case ON_OFF:
+                    par.value.b = 1;
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    par.value.f = o.value.f;
+                    break;
+                }
+            }
+        }
+        post.append(p);
+        //Добавили в постусловие
+
+        if(p.p.type != SAME)
+        {
+            foreach(par_class cl, r.classes)
+            {
+                if(cl.index == o.index)
+                {
+                    cl.index = i;
+                    classes.append(cl);
+                }
+            }
+            //Запомнили классы параметров из операции, чтобы по нима потом смотреть
+
+            changes.append(par);
+            //Здесь индекс, тип, значение со знаком
+
+            i++;
+        }
+
+    }
+    //Сначала записали в пост изменения самих параметров
+
+    foreach(record rec, env_model)
+    {
+        foreach(par_class p_c, rec.classes)
+        {
+            int time = 0;
+            foreach(par_class o_c, classes)
+            {
+                if(same_class(p_c.classes,o_c.classes))
+                {
+                    foreach(history h, rec.histories)
+                    {
+                        if(h.index == p_c.index)
+                        {
+                            parameter dep = rec.dev.par[p_c.index];
+                            parameter infl = changes[o_c.index];
+                            relation *r = correlate(h.series, dep.type, id, infl.index, infl.type, p_c.classes, infl.value, false);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+parameter knowledge::get_post(parameter delta)
+{
+    switch (delta.type) {
+    case TEMPERATURE:
+    case PERCENT:
+        if(delta.value.i > 0) delta.type = INCREASE;
+        else if (delta.value.i < 0) {
+            delta.type = DECREASE;
+            delta.value.i = -delta.value.i;
+        }
+        else delta.type = SAME;
+        break;
+    case ON_OFF:
+        break;
+    case COEFF:
+    case F_SIZE:
+        if(delta.value.f > 0) delta.type = INCREASE;
+        else if (delta.value.f < 0) {
+            delta.type = DECREASE;
+            delta.value.f = -delta.value.f;
+        }
+        else delta.type = SAME;
+        break;
+    }
+    return delta;
+}
+
+int knowledge::prognose_distance(QList<post_cond> post)
+{
+    return 1;
+}
+
+bool knowledge::same_class(QList<int> one, QList<int> two)
+{
+    foreach(int o, one)
+    {
+        foreach(int t, two)
+        {
+            if(o == t) return true;
+        }
+    }
+    return false;
+}
+
 int knowledge::distance()
 {
     int count = 0;
@@ -621,7 +799,7 @@ intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
     return d;
 }
 
-relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, int index, int type, int cl, val d, bool whose)
+relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, int index, int type, QList<int> cl, val d, bool whose)
 {
     QList<history_value> infl;
     QList<QList<history_value>::iterator> interferences;
@@ -638,14 +816,11 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
                 {
                     if(p.index == h.index)
                     {
-                        foreach(int i, p.classes)
+                        if(same_class(cl, p.classes))
                         {
-                            if (i == cl)
-                            {
-                                interferences.append(h.series.begin());
-                            }
+                            interferences.append(h.series.begin());
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -757,13 +932,14 @@ weighed_rel knowledge::norm_rel(int start, int fin, val d_d, val d_i, int type_d
     if(whose)
     {
         k = calc_k(d_d, type_d, must);
-        rel.r.d1 = d_d;
+        rel.r.d1 = must;
         rel.r.d2 = apply_k(k, type_i, d_i);
+        //Равняемся на зависимого
     }
     else
     {
         k = calc_k(d_i, type_i, must);
-        rel.r.d2 = d_i;
+        rel.r.d2 = must;
         rel.r.d1 = apply_k(k, type_d, d_d);
     }
     rel.w = 100 - distance(start);
@@ -878,3 +1054,5 @@ val knowledge::avg(double sum, int count, int type)
     }
     return res;
 }
+
+

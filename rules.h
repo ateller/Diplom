@@ -15,12 +15,17 @@
 #define LESS 0
 #define LARGER 1
 #define EQUAL 2
+#define SAME 2
+//В посте если параметр не изменится
 
 struct condition{int dev_id; parameter p;};
 
 //Здесь тип отвечает за тип условия
 
-struct rule{QList<condition> pre; QList<parameter> operation; int period; int last_use;QList<condition> post;};
+struct post_cond{int dev_id; parameter p; int time;};
+//Значение, на сколько изменится и время, за которое это произойдет
+
+struct rule{QList<condition> pre; QList<parameter> operation; int period; int last_use;};
 
 #endif // RULES_H
 

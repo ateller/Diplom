@@ -17,7 +17,7 @@ struct splited{class_list_el el; int delta;};
 
 struct class_list{QList<class_list_el> list; int delta;};
 
-struct applicable_rule{int id; int index; rule r; int delta;};
+struct applicable_rule{int id; int index; rule r; int delta; QList<post_cond> post;};
 
 class mape_loop : public QObject
 {
@@ -42,7 +42,6 @@ public:
     QList<splited> split(record);
 private:
     bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
-    int prognose_distance();//Дописать
     bool check_par(int id, parameter p);
 signals:
     void system_update();

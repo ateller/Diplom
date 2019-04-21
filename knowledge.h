@@ -20,7 +20,7 @@ struct intermed_dist{int sum; int count;};
 struct relation{val d1; val d2; int time;};
 struct weighed_rel{relation r; int w;};
 
-struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop;};
+struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop; QList<post_cond> post;};
 
 class knowledge: public QObject
 {
@@ -31,7 +31,7 @@ public:
     int distance(QList<dev_parameters> one, QList<dev_parameters> two);
     int distance(int loop);
     intermed_dist distance(QList<parameter> one, QList <parameter> two);
-    relation* correlate(QList<history_value> dep, int dep_type, int id, int index, int type, int cl, val d, bool whose);
+    relation* correlate(QList<history_value> dep, int dep_type, int id, int index, int type, QList<int> cl, val d, bool whose);
     int predict();
     knowledge();
     ~knowledge();
@@ -52,6 +52,9 @@ public:
     int loops_counter;
     int delta(parameter p, val g);
     QList<executing_rule> exec_rules;
+    QList<post_cond> predict(int id, QList<parameter> operation);
+    int prognose_distance(QList<post_cond> post);
+    bool same_class(QList<int>, QList<int>);
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:
@@ -65,6 +68,7 @@ private:
     val subtract(val what, val from, int type);
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
+    parameter get_post(parameter delta);
 };
 
 template<typename v>

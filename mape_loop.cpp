@@ -158,7 +158,8 @@ void mape_loop::plan()
                 if (add == false) continue;
                 //Проверили по операции
 
-               int delta = prognose_distance(); //функцию допишу
+               QList<post_cond> rule_effect = k->predict((*r).operation);
+               int delta = k->prognose_distance(rule_effect);
                if (delta <= 0) continue;
                if (delta > applicable.delta)
                {

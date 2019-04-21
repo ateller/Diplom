@@ -159,7 +159,7 @@ void mape_loop::plan()
                 //Проверили по операции
 
                post_state post = k->create_postcond(rec.dev.id, (*r).operation);
-               int delta = k->prognose_distance(post.post, post.time);
+               int delta = prognose_distance(post.post, post.time, ex_plan);
                if (delta <= 0) continue;
                if (delta > applicable.delta)
                {
@@ -335,4 +335,32 @@ bool compare_cl(const class_list l1, const class_list l2)
 {
     if(l1.delta > l2.delta) return true;
     else return false;
+}
+
+int mape_loop::prognose_distance(QList<post_cond> post, int time, QList<to_execute> additional)
+{
+    QList<dev_parameters>* state = new QList<dev_parameters>;
+    foreach(record r, k->sys_model)
+    {
+        state->append(r.dev);
+    }
+    foreach(record r, k->env_model)
+    {
+        state->append(r.dev);
+    }
+
+    foreach(executing_rule r, k->exec_rules)
+    {
+        k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer);
+    }
+    foreach(to_execute r, additional)
+    {
+        k->apply_post(state, r.post, 0, r.timer);
+    }
+
+    QList<dev_parameters> without = *state;
+    k->apply_post(state, post, 0, time);
+
+    int dist = k->distance(without) - k->distance(*state);
+    return dist;
 }

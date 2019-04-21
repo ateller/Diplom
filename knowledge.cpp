@@ -754,22 +754,6 @@ void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, 
     }
 }
 
-int knowledge::prognose_distance(QList<post_cond> post, int time)
-{
-    QList<dev_parameters>* state = new QList<dev_parameters>;
-    foreach(record r, sys_model)
-    {
-        state->append(r.dev);
-    }
-    foreach(record r, env_model)
-    {
-        state->append(r.dev);
-    }
-
-
-    return 1;
-}
-
 bool knowledge::same_class(QList<int> one, QList<int> two)
 {
     foreach(int o, one)
@@ -845,6 +829,63 @@ int knowledge::distance(QList<dev_parameters> one, QList<dev_parameters> two)
                     count+=d.count;
                     break;
                 }
+            }
+        }
+    }
+    if(count) return sum/count;
+    else return 0;
+}
+
+int knowledge::distance(QList<dev_parameters> temp)
+{
+    int sum = 0, count = 0;
+    foreach(record r, env_model)
+    {
+        foreach(dev_parameters d, temp)
+        {
+            if(d.id == r.dev.id)
+            {
+                foreach(goal g, r.goal_model)
+                {
+                    if(!g.not_care)
+                    {
+                        foreach(parameter p, d.par)
+                        {
+                            if(p.index == g.index)
+                            {
+                                sum+=delta(p,g.value);
+                                count++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+    foreach(record r, sys_model)
+    {
+        foreach(dev_parameters d, temp)
+        {
+            if(d.id == r.dev.id)
+            {
+                foreach(goal g, r.goal_model)
+                {
+                    if(!g.not_care)
+                    {
+                        foreach(parameter p, d.par)
+                        {
+                            if(p.index == g.index)
+                            {
+                                sum+=delta(p,g.value);
+                                count++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
             }
         }
     }

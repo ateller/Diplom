@@ -30,6 +30,7 @@ public:
     int id_counter;
     int distance();
     int distance(QList<dev_parameters> one, QList<dev_parameters> two);
+    int distance(QList<dev_parameters> temp);
     int distance(int loop);
     intermed_dist distance(QList<parameter> one, QList <parameter> two);
     relation* correlate(QList<history_value> dep, int dep_type, int id, int index, int type, QList<int> cl, val d, bool whose);
@@ -53,8 +54,8 @@ public:
     int delta(parameter p, val g);
     QList<executing_rule> exec_rules;
     post_state create_postcond(int id, QList<parameter> operation);
-    int prognose_distance(QList<post_cond> post, int time);
     bool same_class(QList<int>, QList<int>);
+    void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:
@@ -69,7 +70,6 @@ private:
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
     parameter get_post(parameter delta);
-    void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
 };
 
 template<typename v>

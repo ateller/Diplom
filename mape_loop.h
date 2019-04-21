@@ -40,6 +40,7 @@ public:
     int import_knowledge(QFile *f);
     rule* generate_rule();//Дописать
     QList<splited> split(record);
+    int prognose_distance(QList<post_cond> post, int time, QList<to_execute> additional);
 private:
     bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
     bool check_par(int id, parameter p);

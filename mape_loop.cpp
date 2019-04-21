@@ -158,15 +158,17 @@ void mape_loop::plan()
                 if (add == false) continue;
                 //Проверили по операции
 
-               QList<post_cond> rule_effect = k->predict((*r).operation);
-               int delta = k->prognose_distance(rule_effect);
+               post_state post = k->create_postcond(rec.dev.id, (*r).operation);
+               int delta = k->prognose_distance(post.post, post.time);
                if (delta <= 0) continue;
                if (delta > applicable.delta)
                {
+                   applicable.post = post.post;
                    applicable.id = rec.dev.id;
                    applicable.index = i;
                    applicable.delta = delta;
                    applicable.r = (*r);
+                   applicable.r.period = post.time;
                }
             }
         }
@@ -177,6 +179,7 @@ void mape_loop::plan()
             r.id = applicable.id;
             r.operation = applicable.r.operation;
             r.timer = applicable.r.period;
+            r.post = applicable.post;
             qobject_cast<effector*> (k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
             ex_plan += r;
         }
@@ -200,6 +203,7 @@ void mape_loop::execute()
         r.timer = temp.timer;
         r.start_loop = k->loops_counter;
         r.operation = temp.operation;
+        r.post = temp.post;
     }
     emit executed(i);
 }
@@ -311,11 +315,6 @@ bool mape_loop::uses(int id_1, QList<parameter> operation, int id_2, parameter p
         if(temp.index == p.index) return true;
     }
     return false;
-}
-
-int mape_loop::prognose_distance()
-{
-    return 1;
 }
 
 bool mape_loop::check_par(int id, parameter p)

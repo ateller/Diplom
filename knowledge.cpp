@@ -461,9 +461,9 @@ int knowledge::delta(parameter p, val g)
     return delta;
 }
 
-QList<post_cond> knowledge::predict(int id, QList<parameter> operation)
+post_state knowledge::create_postcond(int id, QList<parameter> operation)
 {
-    QList<post_cond> post;
+    post_state post;
     QList<parameter> changes;
     record r = sys_model[indexof(id)];
     QList<par_class> classes;
@@ -546,7 +546,7 @@ QList<post_cond> knowledge::predict(int id, QList<parameter> operation)
                 }
             }
         }
-        post.append(p);
+        post.post.append(p);
         //Добавили в постусловие
 
         if(p.p.type != SAME)
@@ -570,29 +570,95 @@ QList<post_cond> knowledge::predict(int id, QList<parameter> operation)
     }
     //Сначала записали в пост изменения самих параметров
 
+    post.time = 1;
     foreach(record rec, env_model)
     {
         foreach(par_class p_c, rec.classes)
         {
-            int time = 0;
+            parameter dep = rec.dev.par[p_c.index];
+            post_cond p;
+            p.dev_id = rec.dev.id;
+            p.time = 0;
+            p.p.index = p_c.index;
+            double sum = 0;
             foreach(par_class o_c, classes)
             {
+                parameter infl = changes[o_c.index];
                 if(same_class(p_c.classes,o_c.classes))
                 {
                     foreach(history h, rec.histories)
                     {
                         if(h.index == p_c.index)
                         {
-                            parameter dep = rec.dev.par[p_c.index];
-                            parameter infl = changes[o_c.index];
-                            relation *r = correlate(h.series, dep.type, id, infl.index, infl.type, p_c.classes, infl.value, false);
+                            relation *rel = correlate(h.series, dep.type, id, infl.index, infl.type, p_c.classes, infl.value, false);
+                            if(rel != nullptr)
+                            {
+                                double check = sum;
+                                switch (dep.type) {
+                                case TEMPERATURE:
+                                case PERCENT:
+                                    sum += rel->d1.i;
+                                    break;
+                                case ON_OFF:
+                                    if (rel->d1.b) sum += 1;
+                                    else sum += -1;
+                                    break;
+                                case COEFF:
+                                case F_SIZE:
+                                    sum += static_cast<double>(rel->d1.f);
+                                    break;
+                                }
+                                if((check != sum) && (rel->time > p.time)) p.time = rel->time;
+                                delete  rel;
+                            }
                             break;
                         }
                     }
                 }
             }
+            if(sum > 0)
+            {
+                p.p.type = INCREASE;
+                switch (dep.type) {
+                case TEMPERATURE:
+                case PERCENT:
+                    p.p.value.i = static_cast<int>(round(sum));
+                    break;
+                case ON_OFF:
+                    p.p.value.b = 1;
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    p.p.value.f = static_cast<float>(sum);
+                    break;
+                }
+            }
+            else if (sum < 0) {
+                p.p.index = DECREASE;
+                switch (dep.type) {
+                case TEMPERATURE:
+                case PERCENT:
+                    p.p.value.i = -static_cast<int>(round(sum));
+                    break;
+                case ON_OFF:
+                    p.p.value.b = 0;
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    p.p.value.f = -static_cast<float>(sum);
+                    break;
+                }
+            }
+            else {
+                p.p.index = SAME;
+                p.p.value = dep.value;
+                p.time = 1;
+            }
+            if(p.time > post.time) post.time = p.time;
+            post.post.append(p);
         }
     }
+    return post;
 }
 
 parameter knowledge::get_post(parameter delta)
@@ -622,8 +688,85 @@ parameter knowledge::get_post(parameter delta)
     return delta;
 }
 
-int knowledge::prognose_distance(QList<post_cond> post)
+void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, int time_before, int time)
 {
+    foreach(post_cond p, post)
+    {
+        QList<dev_parameters>::iterator dev = state->begin();
+        for(; dev!=state->end(); dev++)
+        {
+            if((*dev).id == p.dev_id)
+            {
+                QList<parameter>::iterator i = (*dev).par.begin();
+                for(;i != (*dev).par.end(); i++)
+                {
+                    if((*i).index == p.p.index)
+                    {
+                        if(p.p.type != SAME)
+                        {
+                            int t = p.time - time_before;
+                            if(t > 0)
+                            {
+                                if(t > time) t = time;
+                                //Нужно найти время пересечения действия посткондишона с периодом
+
+                                double k = t/p.time;
+                                //От времени зависит действие
+
+                                if(p.p.type == INCREASE){
+                                    switch ((*i).type) {
+                                    case TEMPERATURE:
+                                    case PERCENT:
+                                        (*i).value.i += round(static_cast<double>(p.p.value.i) * k);
+                                        break;
+                                    case ON_OFF:
+                                        if(k > 0.5) (*i).value.b = 1;
+                                        break;
+                                    case COEFF:
+                                    case F_SIZE:
+                                        (*i).value.f += static_cast<float>(static_cast<double>(p.p.value.f) * k);
+                                        break;
+                                    }
+                                }
+                                else {
+                                    switch ((*i).type) {
+                                    case TEMPERATURE:
+                                    case PERCENT:
+                                        (*i).value.i += -round(static_cast<double>(p.p.value.i) * k);
+                                        break;
+                                    case ON_OFF:
+                                        if(k > 0.5) (*i).value.b = 0;
+                                        break;
+                                    case COEFF:
+                                    case F_SIZE:
+                                        (*i).value.f += -static_cast<float>(static_cast<double>(p.p.value.f) * k);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+int knowledge::prognose_distance(QList<post_cond> post, int time)
+{
+    QList<dev_parameters>* state = new QList<dev_parameters>;
+    foreach(record r, sys_model)
+    {
+        state->append(r.dev);
+    }
+    foreach(record r, env_model)
+    {
+        state->append(r.dev);
+    }
+
+
     return 1;
 }
 

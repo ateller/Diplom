@@ -17,6 +17,7 @@ struct history{int index; QList<history_value> series;};
 struct record{device* pointer; QList <QString> names; dev_parameters dev; QList<goal> goal_model; QList<history>histories; QList<par_class> classes;};
 struct intermed_dist{int sum; int count;};
 
+struct post_state{QList<post_cond> post; int time;};
 struct relation{val d1; val d2; int time;};
 struct weighed_rel{relation r; int w;};
 
@@ -32,7 +33,6 @@ public:
     int distance(int loop);
     intermed_dist distance(QList<parameter> one, QList <parameter> two);
     relation* correlate(QList<history_value> dep, int dep_type, int id, int index, int type, QList<int> cl, val d, bool whose);
-    int predict();
     knowledge();
     ~knowledge();
     int add(device* s);
@@ -52,8 +52,8 @@ public:
     int loops_counter;
     int delta(parameter p, val g);
     QList<executing_rule> exec_rules;
-    QList<post_cond> predict(int id, QList<parameter> operation);
-    int prognose_distance(QList<post_cond> post);
+    post_state create_postcond(int id, QList<parameter> operation);
+    int prognose_distance(QList<post_cond> post, int time);
     bool same_class(QList<int>, QList<int>);
 public slots:
     void update_goal(int id, int par, val new_val);
@@ -69,6 +69,7 @@ private:
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
     parameter get_post(parameter delta);
+    void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
 };
 
 template<typename v>

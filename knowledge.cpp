@@ -373,8 +373,10 @@ record knowledge::import_record(QDataStream* str)
         *str >> p.index;
         *str >> p.type;
         *str >> p.value.f;
+        temp.pointer->to_be_controlled(p.index,p.value);
         temp.dev.par.append(p);
     }
+    temp.pointer->update();
 
     *str >> k;
 

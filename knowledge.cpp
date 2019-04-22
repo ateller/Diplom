@@ -688,6 +688,26 @@ parameter knowledge::get_post(parameter delta)
     return delta;
 }
 
+QList<condition> knowledge::create_pre()
+{
+    QList<condition> pre;
+    foreach(record r, sys_model)
+    {
+        foreach(goal g, r.goal_model)
+        {
+            add_pre_cond(&pre, r.dev.par[g.index], r.dev.id);
+        }
+    }
+    foreach(record r, env_model)
+    {
+        foreach(goal g, r.goal_model)
+        {
+            add_pre_cond(&pre, r.dev.par[g.index], r.dev.id);
+        }
+    }
+    return pre;
+}
+
 void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, int time_before, int time)
 {
     foreach(post_cond p, post)
@@ -1237,6 +1257,62 @@ val knowledge::avg(double sum, int count, int type)
         break;
     }
     return res;
+}
+
+void knowledge::add_pre_cond(QList<condition> *pre, parameter p, int id)
+{
+    condition c;
+    c.dev_id = id;
+    c.p = p;
+    switch (p.type) {
+    case TEMPERATURE:
+        c.p.value.i = p.value.i -5;
+        c.p.type = LARGER;
+        pre->append(c);
+
+        c.p.value.i = p.value.i + 5;
+        c.p.type = LESS;
+        pre->append(c);
+        break;
+    case PERCENT:
+        if(p.value.i > 5)
+        {
+            c.p.value.i = p.value.i -5;
+            c.p.type = LARGER;
+            pre->append(c);
+        }
+        if(p.value.i < 95)
+        {
+            c.p.value.i = p.value.i + 5;
+            c.p.type = LESS;
+            pre->append(c);
+        }
+        break;
+    case ON_OFF:
+        c.p.type = EQUAL;
+        pre->append(c);
+        break;
+    case COEFF:
+        c.p.value.f = p.value.f - static_cast<float>(0.5);
+        c.p.type = LARGER;
+        pre->append(c);
+
+        c.p.value.f = p.value.f + static_cast<float>(0.5);
+        c.p.type = LESS;
+        pre->append(c);
+        break;
+    case F_SIZE:
+        if(p.value.f > static_cast<float>(0.5))
+        {
+            c.p.value.f = p.value.f - static_cast<float>(0.5);
+            c.p.type = LARGER;
+            pre->append(c);
+        }
+        c.p.value.f = p.value.f + static_cast<float>(0.5);
+        c.p.type = LESS;
+        pre->append(c);
+        break;
+    }
 }
 
 

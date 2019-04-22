@@ -33,6 +33,7 @@ control::control(QWidget *parent) :
     start->setEnabled(0);
 
     connect(manager.k, SIGNAL(added(int)), SLOT(upd_goal(int)));
+    connect(&manager, SIGNAL(rule_generated(int, int)), this, SLOT(add_gen_rule(int, int)));
 
     w.set(&manager);
 
@@ -462,6 +463,8 @@ void control::add_rule()
     delete edit;
 }
 
+
+
 void control::add_rule_widget(QVBoxLayout* rules_layout, int i)
 {
     QHBoxLayout* rule = new QHBoxLayout;
@@ -560,6 +563,21 @@ void control::show_rule()
     r_t->setText(text, temp->name + ": rule " + QString::number(i));
     r_t->show();
     connect(qobject_cast<QPushButton*>(sender()), SIGNAL(clicked()), r_t, SLOT(deleteLater()));
+}
+
+void control::add_gen_rule(int id, int i)
+{
+    QVBoxLayout* l = qobject_cast<QVBoxLayout*>(ui->componentsListScrollArea->layout());
+    for(int j = 0; j < l->count(); j++)
+    {
+        QWidget* w = l->itemAt(j)->widget();
+        if(w->property("id").value<int>() == id)
+        {
+            QVBoxLayout* rules_layout = qobject_cast<QVBoxLayout*>(w->layout()->itemAt(3)->widget()->layout());
+            add_rule_widget(rules_layout, i);
+            break;
+        }
+    }
 }
 
 void control::delete_rule()

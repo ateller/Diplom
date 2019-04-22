@@ -62,6 +62,7 @@ private slots:
     void save_slot();
     void save_to_new_file();
 public slots:
+    void add_gen_rule(int id, int i);
 signals:
     void done();
 };

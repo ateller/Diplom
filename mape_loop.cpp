@@ -115,7 +115,7 @@ void mape_loop::plan()
     foreach(class_list temp, classes)
     {
         applicable.delta = -1;
-        foreach(record rec, k->sys_model)
+        foreach(record rec, k->sys_model) //Поменять так, чтобы по классу шел
         {
             QList<rule> rules = qobject_cast<effector*>(rec.pointer)->ruleset;
             QList<rule>::iterator r;
@@ -173,7 +173,28 @@ void mape_loop::plan()
             }
         }
 
-        if(applicable.delta > -1)
+        if(applicable.delta < 0)
+        {
+            generated_rule r = generate_rule(&temp);
+            if(r.delta > 0)
+            {
+                applicable.post = r.post.post;
+                applicable.id = r.id;
+
+                applicable.delta = r.delta;
+                applicable.r = r.r;
+                applicable.r.period = r.post.time;
+
+                effector* e = qobject_cast<effector*>(k->sys_model[k->indexof(r.id)].pointer);
+                applicable.index = e->ruleset.size();
+
+                e->add_rule(r.r);
+                emit rule_generated(r.id, applicable.index);
+            }
+        }
+
+
+        if(applicable.delta > 0)
         {
             to_execute r;
             r.id = applicable.id;
@@ -240,9 +261,164 @@ int mape_loop::import_knowledge(QFile *f)
 
 }
 
-rule* mape_loop::generate_rule()
+generated_rule mape_loop::generate_rule(class_list *temp)
 {
-    return nullptr;
+    QList<out_of_tol> list;
+    int i = 0;
+    foreach(class_list_el c, temp->list)
+    {
+        int j = 0;
+        foreach(int d, c.deltas)
+        {
+            out_of_tol t;
+            t.delta = d;
+            t.dev_index = i;
+            t.par_index = j;
+            list.append(t);
+            j++;
+        }
+        i++;
+    }
+
+    std::sort(list.begin(), list.end(), compare_out);
+
+    generated_rule res;
+    res.delta = 0;
+    foreach(out_of_tol t, list)
+    {
+        QList<class_list_el>::iterator dev = temp->list.begin() + t.dev_index;
+        post_state post;
+        QList<parameter> op;
+        int id = 0;
+        int delta = 0;
+
+        if((*dev).dev.id > 0)
+        {
+            val g;
+            parameter p = (*dev).dev.par[t.par_index];
+            id = (*dev).dev.id;
+            foreach(goal gl, k->sys_model[k->indexof((*dev).dev.id)].goal_model)
+            {
+                if(gl.index == p.index)
+                {
+                    g = gl.value;
+                    break;
+                }
+            }
+
+            parameter o = p;
+
+            switch (p.type) {
+            case TEMPERATURE:
+            case PERCENT:
+                o.value.i = g.i - p.value.i;
+                o = k->get_post(o);
+                break;
+            case ON_OFF:
+                if (!p.value.b && g.b) {
+                    o.value.b = 1;
+                    o.type = INCREASE;
+                }
+                else {
+                    o.value.b = 0;
+                    o.type = INCREASE;
+                }
+                break;
+            case COEFF:
+            case F_SIZE:
+                o.value.f = g.f - p.value.f;
+                o = k->get_post(o);
+                break;
+            }
+            op.append(o);
+            post = k->create_postcond((*dev).dev.id, op);
+            delta = prognose_distance(post.post, post.time, ex_plan);
+        }
+        else
+        {
+            val g;
+            parameter p = (*dev).dev.par[t.par_index];
+            QList<history_value> h = (*dev).hist[t.par_index];
+
+            foreach(goal gl, k->env_model[k->indexof((*dev).dev.id)].goal_model)
+            {
+                if(gl.index == p.index)
+                {
+                    g = gl.value;
+                    break;
+                }
+            }
+            switch (p.type) {
+            case TEMPERATURE:
+                case PERCENT:
+                    g.i = g.i - p.value.i;
+                    break;
+                case ON_OFF:
+                    if (!p.value.b && g.b) {
+                        g.b = 1;
+                    }
+                    else {
+                        g.b = 0;
+                    }
+                    break;
+                case COEFF:
+                case F_SIZE:
+                    g.f = g.f - p.value.f;
+                    break;
+            }
+
+            QList<class_list_el>::iterator it = temp->list.begin();
+            for(;(*it).dev.id < 0; it++);
+            for(;it != temp->list.end(); it++)
+            {
+                int delta_t = 0;
+                foreach(parameter inf, (*it).dev.par)
+                {
+                    QList<int> cl;
+                    foreach(par_class c, k->sys_model[k->indexof((*it).dev.id)].classes)
+                    {
+                        if(c.index == p.index)
+                        {
+                            cl = c.classes;
+                            break;
+                        }
+                    }
+
+                    relation *rel = k->correlate(h, p.type, (*it).dev.id, inf.index, inf.type, cl, g, true);
+                    if(rel == nullptr) continue;
+                    parameter o = inf;
+                    inf.value = rel->d2;
+
+                    o = k->get_post(o);
+                    QList<parameter> op_t;
+                    op_t.append(o);
+
+                    post_state post_t;
+                    post_t = k->create_postcond((*dev).dev.id, op);
+                    delta_t = prognose_distance(post.post, post.time, ex_plan);
+                    if(delta_t > delta)
+                    {
+                        id = (*it).dev.id;
+                        post = post_t;
+                        delta = delta_t;
+                        op = op_t;
+                    }
+                }
+            }
+        }
+
+        if(delta > res.delta)
+        {
+            res.r.pre = k->create_pre();
+            res.r.period = post.time;
+            res.r.last_use = - post.time;
+            res.r.operation = op;
+            res.id = id;
+            res.post = post;
+            res.delta = delta;
+        }
+    }
+    return res;
 }
 
 QList<splited> mape_loop::split(record r)
@@ -299,6 +475,8 @@ QList<splited> mape_loop::split(record r)
             //Его запись
             list[i].el.hist.append(temp_hv);
             //Его историю
+            list[i].el.deltas.append(delta);
+            //Его дельту
             list[i].delta += delta;
         }
     }
@@ -332,6 +510,12 @@ bool mape_loop::check_par(int id, parameter p)
 }
 
 bool compare_cl(const class_list l1, const class_list l2)
+{
+    if(l1.delta > l2.delta) return true;
+    else return false;
+}
+
+bool compare_out(const out_of_tol l1, const out_of_tol l2)
 {
     if(l1.delta > l2.delta) return true;
     else return false;

@@ -21,7 +21,7 @@ struct post_state{QList<post_cond> post; int time;};
 struct relation{val d1; val d2; int time;};
 struct weighed_rel{relation r; int w;};
 
-struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop; QList<post_cond> post;};
+struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop; QList<post_cond> post; };
 
 class knowledge: public QObject
 {
@@ -56,6 +56,8 @@ public:
     post_state create_postcond(int id, QList<parameter> operation);
     bool same_class(QList<int>, QList<int>);
     void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
+    parameter get_post(parameter delta);
+    QList<condition> create_pre();
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:
@@ -69,7 +71,7 @@ private:
     val subtract(val what, val from, int type);
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
-    parameter get_post(parameter delta);
+    void add_pre_cond(QList<condition> *pre, parameter p, int id);
 };
 
 template<typename v>

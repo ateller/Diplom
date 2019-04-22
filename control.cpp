@@ -347,6 +347,7 @@ void control::upd_goal(int id)
 
         if(types[temp.index] == ON_OFF) {
             QCheckBox* val = createCheckBox(names[temp.index], i, 0);
+            val->setChecked(temp.value.b);
             connect(val, SIGNAL(toggled(bool)), SLOT(change_goal(bool)));
             par->addWidget(val, 1, 0, 1, 1);
         }
@@ -373,6 +374,7 @@ void control::upd_goal(int id)
         }
 
         QCheckBox *c = new QCheckBox("Doesn't care");
+        c->setChecked(temp.not_care);
         connect(c, SIGNAL(toggled(bool)), SLOT(goal_ignore(bool)));
         c->setProperty("Par_index", QVariant(i));
         par->addWidget(c, 1, 1, 1, 1);

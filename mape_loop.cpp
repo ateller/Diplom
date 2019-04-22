@@ -88,7 +88,7 @@ void mape_loop::plan()
         int i = 0;
         foreach(splited temp, split(rec))
         {
-            if(temp.delta > 0)
+            if(!temp.el.deltas.isEmpty())
             {
                 classes[i].list.append(temp.el);
                 classes[i].delta += temp.delta;
@@ -114,6 +114,7 @@ void mape_loop::plan()
 
     foreach(class_list temp, classes)
     {
+        if(temp.delta == 0) continue;
         applicable.delta = -1;
         foreach(record rec, k->sys_model) //Поменять так, чтобы по классу шел
         {
@@ -371,7 +372,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
             }
 
             QList<class_list_el>::iterator it = temp->list.begin();
-            for(;(*it).dev.id < 0; it++);
+            for(;((*it).dev.id < 0) && (it != temp->list.end()); it++);
             for(;it != temp->list.end(); it++)
             {
                 int delta_t = 0;

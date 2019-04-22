@@ -575,6 +575,8 @@ void control::add_gen_rule(int id, int i)
         {
             QVBoxLayout* rules_layout = qobject_cast<QVBoxLayout*>(w->layout()->itemAt(3)->widget()->layout());
             add_rule_widget(rules_layout, i);
+            w->layout()->itemAt(1)->layout()->itemAt(2)->widget()->setEnabled(1);
+            //Включаем кнопку показа списка правил
             break;
         }
     }

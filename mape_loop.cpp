@@ -270,11 +270,14 @@ generated_rule mape_loop::generate_rule(class_list *temp)
         int j = 0;
         foreach(int d, c.deltas)
         {
-            out_of_tol t;
-            t.delta = d;
-            t.dev_index = i;
-            t.par_index = j;
-            list.append(t);
+            if(d > 0)
+            {
+                out_of_tol t;
+                t.delta = d;
+                t.dev_index = i;
+                t.par_index = j;
+                list.append(t);
+            }
             j++;
         }
         i++;
@@ -434,7 +437,7 @@ QList<splited> mape_loop::split(record r)
     }
     //Обнуляем дельты и пишем id
 
-    foreach(par_class temp, r.classes)//Для каждого параметра, имебщего класс
+    foreach(par_class temp, r.classes)//Для каждого параметра, имеющего класс
     {
 
         parameter temp_p = r.dev.par[temp.index];
@@ -452,11 +455,15 @@ QList<splited> mape_loop::split(record r)
             }
         }
         //Ищем его цель
-        if (temp_g.not_care == true) continue;
-        //Если его цель не имеет значения, он нам не нужен
-        int delta = k->delta(temp_p,temp_g.value);
-        if(delta == 0) continue;
-        //Если он в норме, тоже не нужен
+        int delta;
+        if (temp_g.not_care == true)
+        {
+            delta = 0;
+        }
+        else
+        {
+            delta = k->delta(temp_p,temp_g.value);
+        }
 
         QList<history_value> temp_hv;
         //Берем его историю

@@ -438,27 +438,27 @@ int knowledge::delta(parameter p, val g)
     int delta = 0;
     switch (p.type) {
     case TEMPERATURE:
-        delta = g.i - p.value.i;
+        delta = 10 * (g.i - p.value.i);
         if(delta < 0) delta = - delta;
-        if(delta > 100) delta = 100;
+        if(delta > 1000) delta = 1000;
         break;
     case ON_OFF:
         if(g.b != p.value.b)
-            delta = 100;
+            delta = 1000;
         break;
     case PERCENT:
-        delta = g.i - p.value.i;
+        delta = 10 * (g.i - p.value.i);
         if(delta < 0) delta = - delta;
         break;
     case COEFF:
-        delta = static_cast<int>(round(static_cast<double>(g.f - p.value.f) * 50));
+        delta = static_cast<int>(round(static_cast<double>(g.f - p.value.f) * 500));
         if (delta < 0) delta = - delta;
         break;
     case F_SIZE:
         delta = static_cast<int>(round(static_cast<double>(g.f - p.value.f)));
         if(delta < 0) delta = - delta;
-        delta *= 50;
-        if(delta > 100) delta = 100;
+        delta *= 500;
+        if(delta > 1000) delta = 1000;
     }
     return delta;
 }
@@ -1148,7 +1148,7 @@ weighed_rel knowledge::norm_rel(int start, int fin, val d_d, val d_i, int type_d
         rel.r.d2 = must;
         rel.r.d1 = apply_k(k, type_d, d_d);
     }
-    rel.w = 100 - distance(start);
+    rel.w = 1000 - distance(start);
     if(rel.w < 0) rel.w = 0;
     return rel;
 }

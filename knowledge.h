@@ -64,7 +64,7 @@ signals:
     void added(int);
 private:
     void upd_history(record);
-    bool is_peace(QList<history_value>::iterator i, int type);
+    bool is_peace(QList<history_value>::iterator beg,QList<history_value>::iterator i, int type);
     weighed_rel norm_rel(int start, int fin, val d_d, val d_i, int type_d, int type_i, bool whose, val must);
     double calc_k(val v, int t, val m);
     val apply_k(double k, int t, val v);

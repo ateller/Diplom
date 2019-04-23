@@ -1032,8 +1032,8 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
             }
         }
     }
-    QList<history_value>::iterator i = dep.begin() + 1;
-    //Ставим итератор зависимого во второе изменение (первое - это просто старт)
+    QList<history_value>::iterator i = dep.begin();
+    //Ставим итератор в первое изменение
     QList<history_value>::iterator inf = infl.begin() + 1;
     //И влияющего тоже
     QList<weighed_rel> relations;
@@ -1046,7 +1046,6 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         for(; i < (dep.end() - 1); i++)
         {
             if((*(i + 1)).cycle_number > loop) break;
-            //
         }
         if (i == (dep.end() - 1)) break;
         //Если дошли до конца истории, заканчиваем
@@ -1054,12 +1053,12 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         if((*i).cycle_number > loop) continue;
         //Это значит, история зависимого началась позже истории влияющего, надо проехать вперед
 
-        if(is_peace(i,dep_type) == false) continue;
+        if(is_peace(dep.begin(), i,dep_type) == false) continue;
         //Если изменение случилось не в покое, не подходит
 
         QList<history_value>::iterator j = i + 1;
         //Итое может быть как угодно, а на j изменение должно было отразиться.
-        for(;j != dep.end(); j++) if(is_peace(j,dep_type)) break;
+        for(;j != dep.end(); j++) if(is_peace(dep.begin(), j,dep_type)) break;
         //Нашли следующий период покоя после возмущения
         if(j == dep.end()) break;
         //Если не нашли, а просто дошли до конца, то больше искать смысла ничего нет
@@ -1109,9 +1108,13 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
     return res;
 }
 
-bool knowledge::is_peace(QList<history_value>::iterator i, int type)
+bool knowledge::is_peace(QList<history_value>::iterator beg, QList<history_value>::iterator i, int type)
 {
+    if(i == beg) return true;
+    //Если изменение произошло сразу после старта, оно в покое
+
     int len = (*i).cycle_number - (*(i-1)).cycle_number;
+
     double derivative = 0;
     switch (type) {
     case TEMPERATURE:

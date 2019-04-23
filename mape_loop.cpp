@@ -101,7 +101,7 @@ void mape_loop::plan()
         int i = 0;
         foreach(splited temp, split(rec))
         {
-            if(temp.delta > 0)
+            if(!temp.el.deltas.isEmpty())
             {
                 classes[i].list.append(temp.el);
                 classes[i].delta += temp.delta;

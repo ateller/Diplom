@@ -119,6 +119,8 @@ QList<par_class> heater::get_classes()
     temp.classes.append(TEMPERATURE);
     list.append(temp);
 
+    temp.classes.clear();
+
     temp.index = 1;
     temp.classes.append(TEMPERATURE);
     list.append(temp);

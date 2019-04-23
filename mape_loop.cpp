@@ -393,15 +393,15 @@ generated_rule mape_loop::generate_rule(class_list *temp)
 
                     relation *rel = k->correlate(h, p.type, (*it).dev.id, inf.index, inf.type, cl, g, true);
                     if(rel == nullptr) continue;
-                    parameter o = inf;
                     inf.value = rel->d2;
+                    parameter o = inf;
 
                     o = k->get_post(o);
                     QList<parameter> op_t;
                     op_t.append(o);
 
                     post_state post_t;
-                    post_t = k->create_postcond((*dev).dev.id, op);
+                    post_t = k->create_postcond((*it).dev.id, op_t);
                     delta_t = prognose_distance(post.post, post.time, ex_plan);
                     if(delta_t > delta)
                     {

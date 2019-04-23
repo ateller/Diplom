@@ -1008,7 +1008,8 @@ intermed_dist knowledge::distance(QList<parameter> one, QList<parameter> two)
 relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, int index, int type, QList<int> cl, val d, bool whose)
 {
     QList<history_value> infl;
-    QList<QList<history_value>::iterator> interferences;
+    struct interference{QList<history_value>::iterator i; QList<history_value>::iterator end;};
+    QList<interference> interferences;
     foreach(record r, sys_model)
     {
         foreach(history h, r.histories)
@@ -1024,7 +1025,10 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
                     {
                         if(same_class(cl, p.classes))
                         {
-                            interferences.append(h.series.begin());
+                            interference itr;
+                            itr.i = h.series.begin();
+                            itr.end = h.series.end();
+                            interferences.append(itr);
                             break;
                         }
                     }
@@ -1056,8 +1060,8 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         if(is_peace(dep.begin(), i,dep_type) == false) continue;
         //Если изменение случилось не в покое, не подходит
 
-        QList<history_value>::iterator j = i + 1;
-        //Итое может быть как угодно, а на j изменение должно было отразиться.
+        QList<history_value>::iterator j = i + 2;
+        //Итое в покое, i + 1 может быть как угодно, а на j изменение должно было отразиться.
         for(;j != dep.end(); j++) if(is_peace(dep.begin(), j,dep_type)) break;
         //Нашли следующий период покоя после возмущения
         if(j == dep.end()) break;
@@ -1066,14 +1070,16 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         int loop_end = (*(j-1)).cycle_number;
 
         bool interrupted = false;
-        QList<QList<history_value>::iterator>::iterator in = interferences.begin();
+        QList<interference>::iterator in = interferences.begin();
         for(; in != interferences.end(); in++)
         {
-            for(;(*(*in)).cycle_number < (loop - 100); (*in)++);
-            if((*(*in)).cycle_number < loop_end)
+            for(;(*in).i != (*in).end; (*in).i++)
             {
-                interrupted = true;
-                break;
+                if((*(*in).i).cycle_number > (loop - 100))
+                {
+                    if ((*(*in).i).cycle_number < loop_end) interrupted = true;
+                    break;
+                }
             }
         }
         if(interrupted) continue;

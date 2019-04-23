@@ -1064,8 +1064,12 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         //Итое в покое, i + 1 может быть как угодно, а на j изменение должно было отразиться.
         for(;j != dep.end(); j++) if(is_peace(dep.begin(), j,dep_type)) break;
         //Нашли следующий период покоя после возмущения
-        if(j == dep.end()) break;
-        //Если не нашли, а просто дошли до конца, то больше искать смысла ничего нет
+        if(j == dep.end())
+        {
+            if((loops_counter - (*(j-1)).cycle_number) < 100) break;
+            //Если дошли до конца, но последнее изменение было достаточно давно, есть все основания
+            //предположить, что это покой. А если нет, то досвидания
+        }
 
         int loop_end = (*(j-1)).cycle_number;
 

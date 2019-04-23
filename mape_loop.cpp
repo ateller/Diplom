@@ -372,7 +372,10 @@ generated_rule mape_loop::generate_rule(class_list *temp)
             }
 
             QList<class_list_el>::iterator it = temp->list.begin();
-            for(;((*it).dev.id < 0) && (it != temp->list.end()); it++);
+            for(;it != temp->list.end(); it++)
+            {
+                if((*it).dev.id > 0) break;
+            }
             for(;it != temp->list.end(); it++)
             {
                 int delta_t = 0;

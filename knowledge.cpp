@@ -1043,7 +1043,7 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         history_value v = *inf;
         int loop = v.cycle_number;
         //Находим, где было очередное изменение
-        for(; i != (dep.end() - 1); i++)
+        for(; i < (dep.end() - 1); i++)
         {
             if((*(i + 1)).cycle_number > loop) break;
             //

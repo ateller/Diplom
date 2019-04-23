@@ -1010,24 +1010,26 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
     QList<history_value> infl;
     struct interference{QList<history_value>::iterator i; QList<history_value>::iterator end;};
     QList<interference> interferences;
-    foreach(record r, sys_model)
+    QList<record>::iterator r = sys_model.begin();;
+    for(;r != sys_model.end(); r++)
     {
-        foreach(history h, r.histories)
+        QList<history>::iterator h = (*r).histories.begin();
+        for(;h != (*r).histories.end(); h++)
         {
-            if((r.dev.id == id)&&(h.index == index))
+            if(((*r).dev.id == id)&&((*h).index == index))
             {
-                infl = h.series;
+                infl = (*h).series;
             }
             else {
-                foreach(par_class p, r.classes)
+                foreach(par_class p, (*r).classes)
                 {
-                    if(p.index == h.index)
+                    if(p.index == (*h).index)
                     {
                         if(same_class(cl, p.classes))
                         {
                             interference itr;
-                            itr.i = h.series.begin();
-                            itr.end = h.series.end();
+                            itr.i = (*h).series.begin();
+                            itr.end = (*h).series.end();
                             interferences.append(itr);
                             break;
                         }
@@ -1074,14 +1076,13 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         int loop_end = (*(j-1)).cycle_number;
 
         bool interrupted = false;
-        QList<interference>::iterator in = interferences.begin();
-        for(; in != interferences.end(); in++)
+        foreach(interference in, interferences)
         {
-            for(;(*in).i != (*in).end; (*in).i++)
+            for(;in.i != in.end; in.i++)
             {
-                if((*(*in).i).cycle_number > (loop - 100))
+                if((*(in.i)).cycle_number > (loop - 100))
                 {
-                    if ((*(*in).i).cycle_number < loop_end) interrupted = true;
+                    if ((*in.i).cycle_number < loop_end) interrupted = true;
                     break;
                 }
             }

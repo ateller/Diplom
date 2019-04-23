@@ -63,7 +63,7 @@ public slots:
 signals:
     void added(int);
 private:
-    void upd_history(record);
+    void upd_history(QList<record>::iterator);
     bool is_peace(QList<history_value>::iterator beg,QList<history_value>::iterator i, int type);
     weighed_rel norm_rel(int start, int fin, val d_d, val d_i, int type_d, int type_i, bool whose, val must);
     double calc_k(val v, int t, val m);

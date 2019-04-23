@@ -72,27 +72,27 @@ void knowledge::update_goal(int id, int par, val new_val)
         sys_model[indexof(id)].goal_model[par].value = new_val;
 }
 
-void knowledge::upd_history(record temp)
+void knowledge::upd_history(QList<record>::iterator temp)
 {
-    QList<history>::iterator j = (temp).histories.begin();
-    for(; j != (temp).histories.end(); j++)
+    QList<history>::iterator j = (*temp).histories.begin();
+    for(; j != (*temp).histories.end(); j++)
     {
-        switch (temp.dev.par[(*j).index].type) {
+        switch ((*temp).dev.par[(*j).index].type) {
             case TEMPERATURE:
             case PERCENT:
-                if((*j).series.back().value.i == (temp).dev.par[(*j).index].value.i) continue;
+                if((*j).series.back().value.i == (*temp).dev.par[(*j).index].value.i) continue;
                 break;
             case ON_OFF:
-                if((*j).series.back().value.b == (temp).dev.par[(*j).index].value.b) continue;
+                if((*j).series.back().value.b == (*temp).dev.par[(*j).index].value.b) continue;
                 break;
             case COEFF:
             case F_SIZE:
-                if((*j).series.back().value.f == (temp).dev.par[(*j).index].value.f) continue;
+                if((*j).series.back().value.f == (*temp).dev.par[(*j).index].value.f) continue;
                 break;
         }
         history_value h_v;
         h_v.cycle_number = loops_counter;
-        h_v.value = (temp).dev.par[(*j).index].value;
+        h_v.value = (*temp).dev.par[(*j).index].value;
         (*j).series.append(h_v);
     }
 }
@@ -113,13 +113,13 @@ void knowledge::upd()
     for(; i != env_model.end(); i++)
     {
         (*i).dev.par = (*i).pointer->get_list();
-        upd_history(*i);
+        upd_history(i);
     }
     i = sys_model.begin();
     for(; i != sys_model.end(); i++)
     {
         (*i).dev.par = (*i).pointer->get_list();
-        upd_history(*i);
+        upd_history(i);
     }
     QList<executing_rule>::iterator r = exec_rules.begin();
     for (; r!= exec_rules.end(); r++) {

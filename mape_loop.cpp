@@ -235,8 +235,35 @@ void mape_loop::plan()
             r.operation = applicable.r.operation;
             r.timer = applicable.r.period;
             r.post = applicable.post;
-            qobject_cast<effector*> (k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
+            qobject_cast<effector*>(k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
             ex_plan += r;
+
+            temp = classes.begin();
+            for(; temp!=classes.end(); temp++)
+            {
+                QList<class_list_el>::iterator el = (*temp).list.begin();
+                for(; el != (*temp).list.end(); el++)
+                {
+                    if((*el).dev.id == r.id)
+                    {
+                        foreach(parameter op_to_del, r.operation)
+                        {
+                            int j = 0;
+                            foreach(parameter p_to_del, (*el).dev.par)
+                            {
+                                if(p_to_del.index == op_to_del.index)
+                                {
+                                    temp->delta -= (*el).deltas.takeAt(j);
+                                    (*el).dev.par.removeAt(j);
+                                    (*el).hist.removeAt(j);
+                                }
+                                j++;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
         }
     }
     emit plan_completed(ex_plan.size());

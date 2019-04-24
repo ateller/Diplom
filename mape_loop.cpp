@@ -226,6 +226,7 @@ void mape_loop::execute()
         r.start_loop = k->loops_counter;
         r.operation = temp.operation;
         r.post = temp.post;
+        k->exec_rules.append(r);
     }
     emit executed(i);
 }
@@ -402,7 +403,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
 
                     post_state post_t;
                     post_t = k->create_postcond((*it).dev.id, op_t);
-                    delta_t = prognose_distance(post.post, post.time, ex_plan);
+                    delta_t = prognose_distance(post_t.post, post.time, ex_plan);
                     if(delta_t > delta)
                     {
                         id = (*it).dev.id;
@@ -496,6 +497,7 @@ QList<splited> mape_loop::split(record r)
 }
 
 bool mape_loop::uses(int id_1, QList<parameter> operation, int id_2, parameter p)
+//Возвращает true, если не использует
 {
     if(id_1 != id_2) return false;
 
@@ -537,11 +539,23 @@ int mape_loop::prognose_distance(QList<post_cond> post, int time, QList<to_execu
     QList<dev_parameters>* state = new QList<dev_parameters>;
     foreach(record r, k->sys_model)
     {
-        state->append(r.dev);
+        dev_parameters dev;
+        dev.id = r.dev.id;
+        foreach(goal g, r.goal_model)
+        {
+            dev.par.append(r.dev.par[g.index]);
+        }
+        state->append(dev);
     }
     foreach(record r, k->env_model)
     {
-        state->append(r.dev);
+        dev_parameters dev;
+        dev.id = r.dev.id;
+        foreach(goal g, r.goal_model)
+        {
+            dev.par.append(r.dev.par[g.index]);
+        }
+        state->append(dev);
     }
 
     foreach(executing_rule r, k->exec_rules)

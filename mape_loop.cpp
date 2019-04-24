@@ -124,7 +124,7 @@ void mape_loop::plan()
             }
             j++;
         }
-        temp = classes.begin() + j;
+        temp = classes.begin() + min;
 
         if((*temp).delta == 0) break;
         //Если дошли до нулевых дельт, делать нечего

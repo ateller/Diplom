@@ -80,6 +80,7 @@ void mape_loop::plan()
     {
         class_list t;
         t.delta = 0;
+        t.cl = i;
         classes.append(t);
     }
 
@@ -116,8 +117,14 @@ void mape_loop::plan()
     {
         if(temp.delta == 0) continue;
         applicable.delta = -1;
-        foreach(record rec, k->sys_model) //Поменять так, чтобы по классу шел
+        QList<class_list_el>::iterator dev = temp.list.begin();
+        for(;dev != temp.list.end(); dev++)
         {
+            if((*dev).dev.id > 0) break;
+        }
+        for(;dev != temp.list.end(); dev++)
+        {
+            record rec = k->sys_model[k->indexof((*dev).dev.id)];
             QList<rule> rules = qobject_cast<effector*>(rec.pointer)->ruleset;
             QList<rule>::iterator r;
             int i;
@@ -152,20 +159,34 @@ void mape_loop::plan()
 
                 foreach(parameter temp_o, (*r).operation)
                 {
-                    add = check_par(rec.dev.id, temp_o);
+                    QList<int> cl;
+                    foreach(par_class temp_pc, rec.classes)
+                    {
+                        if(temp_pc.index == temp_o.index)
+                        {
+                            cl = temp_pc.classes;
+                            break;
+                        }
+                    }
+                    if(cl.indexOf(temp.cl) == -1)
+                    {
+                        add = false;
+                        break;
+                    }
+                    add = check_par((*dev).dev.id, temp_o);
                     if(add == false) break;
                     //Проверяем, не используется ли где
                 }
                 if (add == false) continue;
                 //Проверили по операции
 
-               post_state post = k->create_postcond(rec.dev.id, (*r).operation);
+               post_state post = k->create_postcond((*dev).dev.id, (*r).operation);
                int delta = prognose_distance(post.post, post.time, ex_plan);
                if (delta <= 0) continue;
                if (delta > applicable.delta)
                {
                    applicable.post = post.post;
-                   applicable.id = rec.dev.id;
+                   applicable.id = (*dev).dev.id;
                    applicable.index = i;
                    applicable.delta = delta;
                    applicable.r = (*r);

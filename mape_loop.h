@@ -17,7 +17,7 @@ struct out_of_tol {int dev_index; int par_index; int delta;};
 
 struct splited{class_list_el el; int delta;};
 
-struct class_list{QList<class_list_el> list; int delta;};
+struct class_list{QList<class_list_el> list; int delta; int cl;};
 
 struct applicable_rule{int id; int index; rule r; int delta; QList<post_cond> post;};
 

@@ -111,18 +111,30 @@ void mape_loop::plan()
         }
     }
 
-    std::sort(classes.begin(), classes.end(), compare_cl);
-
-    foreach(class_list temp, classes)
+    for(int i = 0; i < NUM_OF_CLASSES; i++)
     {
-        if(temp.delta == 0) continue;
+        int d = 0, min = 0, j = 0;
+        QList<class_list>::iterator temp = classes.begin();
+        for(; temp != classes.end(); temp++)
+        {
+            if((*temp).delta > d)
+            {
+                d = (*temp).delta;
+                min = j;
+            }
+            j++;
+        }
+        temp = classes.begin() + j;
+
+        if((*temp).delta == 0) break;
+        //Если дошли до нулевых дельт, делать нечего
         applicable.delta = -1;
-        QList<class_list_el>::iterator dev = temp.list.begin();
-        for(;dev != temp.list.end(); dev++)
+        QList<class_list_el>::iterator dev = (*temp).list.begin();
+        for(;dev != (*temp).list.end(); dev++)
         {
             if((*dev).dev.id > 0) break;
         }
-        for(;dev != temp.list.end(); dev++)
+        for(;dev != (*temp).list.end(); dev++)
         {
             record rec = k->sys_model[k->indexof((*dev).dev.id)];
             QList<rule> rules = qobject_cast<effector*>(rec.pointer)->ruleset;
@@ -168,7 +180,7 @@ void mape_loop::plan()
                             break;
                         }
                     }
-                    if(cl.indexOf(temp.cl) == -1)
+                    if(cl.indexOf((*temp).cl) == -1)
                     {
                         add = false;
                         break;
@@ -197,7 +209,7 @@ void mape_loop::plan()
 
         if(applicable.delta < 0)
         {
-            generated_rule r = generate_rule(&temp);
+            generated_rule r = generate_rule(&(*temp));
             if(r.delta > 0)
             {
                 applicable.post = r.post.post;
@@ -215,7 +227,7 @@ void mape_loop::plan()
             }
         }
 
-
+        classes.removeAt(j);
         if(applicable.delta > 0)
         {
             to_execute r;
@@ -226,7 +238,6 @@ void mape_loop::plan()
             qobject_cast<effector*> (k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
             ex_plan += r;
         }
-
     }
     emit plan_completed(ex_plan.size());
 }

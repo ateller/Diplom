@@ -636,7 +636,7 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
                 }
             }
             else if (sum < 0) {
-                p.p.index = DECREASE;
+                p.p.type = DECREASE;
                 switch (dep.type) {
                 case TEMPERATURE:
                 case PERCENT:
@@ -652,7 +652,7 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
                 }
             }
             else {
-                p.p.index = SAME;
+                p.p.type = SAME;
                 p.p.value = dep.value;
                 p.time = 1;
             }

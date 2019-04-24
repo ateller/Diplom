@@ -403,7 +403,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
 
                     post_state post_t;
                     post_t = k->create_postcond((*it).dev.id, op_t);
-                    delta_t = prognose_distance(post_t.post, post.time, ex_plan);
+                    delta_t = prognose_distance(post_t.post, post_t.time, ex_plan);
                     if(delta_t > delta)
                     {
                         id = (*it).dev.id;

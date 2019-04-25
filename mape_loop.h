@@ -48,6 +48,8 @@ public:
 private:
     bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
     bool check_par(int id, parameter p);
+    void interrupt_executing(QList<executing_rule>::iterator r);
+    bool did_exicuted(QList<parameter> op, QList<history> *h);
 signals:
     void system_update();
     void monitor_completed();

@@ -56,7 +56,10 @@ void mape_loop::analysis()
     {
         if((k->loops_counter - (*i).start_loop) == 1)
         {
-            //здесь будет прерывание исполнения, когда я его сделаю
+            if(!did_exicuted((*i).operation, &k->sys_model[k->indexof((*i).id)].histories))
+            {
+                interrupt_executing(i);
+            }
         }
         if ((*i).timer == 0)
         {
@@ -288,6 +291,7 @@ void mape_loop::execute()
         r.operation = temp.operation;
         r.post = temp.post;
         r.r_id = temp.r_id;
+        r.interrupted = false;
         k->exec_rules.append(r);
     }
     emit executed(i);
@@ -584,6 +588,16 @@ bool mape_loop::check_par(int id, parameter p)
     return true;
 }
 
+void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
+{
+
+}
+
+bool mape_loop::did_exicuted(QList<parameter> op, QList<history> *h)
+{
+
+}
+
 bool compare_cl(const class_list l1, const class_list l2)
 {
     if(l1.delta > l2.delta) return true;
@@ -622,7 +636,8 @@ int mape_loop::prognose_distance(QList<post_cond> post, int time, QList<to_execu
 
     foreach(executing_rule r, k->exec_rules)
     {
-        k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer);
+        if(!r.interrupted)
+            k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer);
     }
     foreach(to_execute r, additional)
     {

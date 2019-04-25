@@ -56,7 +56,7 @@ void mape_loop::analysis()
     {
         if((k->loops_counter - (*i).start_loop) == 1)
         {
-            if(!did_exicuted((*i).operation, &k->sys_model[k->indexof((*i).id)].histories))
+            if(!did_executed((*i).operation, &k->sys_model[k->indexof((*i).id)].histories))
             {
                 interrupt_executing(i);
             }
@@ -593,7 +593,7 @@ void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
 
 }
 
-bool mape_loop::did_exicuted(QList<parameter> op, QList<history> *h)
+bool mape_loop::did_executed(QList<parameter> op, QList<history> *h)
 {
 
 }

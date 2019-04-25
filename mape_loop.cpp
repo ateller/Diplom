@@ -137,10 +137,10 @@ void mape_loop::plan()
         for(;dev != (*temp).list.end(); dev++)
         {
             record rec = k->sys_model[k->indexof((*dev).dev.id)];
-            QList<rule> rules = qobject_cast<effector*>(rec.pointer)->ruleset;
-            QList<rule>::iterator r;
+            QList<rule> *rules = &qobject_cast<effector*>(rec.pointer)->ruleset;
+            QList<rule>::iterator r = rules->begin();
             int i;
-            for (i = 0, r = rules.begin(); r != rules.end(); i++, r++)
+            for (i = 0; r != rules->end(); i++, r++)
             {
                 bool add = true;
                 foreach(condition temp_c, (*r).pre)
@@ -201,8 +201,8 @@ void mape_loop::plan()
                    applicable.id = (*dev).dev.id;
                    applicable.index = i;
                    applicable.delta = delta;
+                   (*r).period = post.time;
                    applicable.r = (*r);
-                   applicable.r.period = post.time;
                }
             }
         }
@@ -223,6 +223,7 @@ void mape_loop::plan()
                 applicable.index = e->ruleset.size();
 
                 e->add_rule(r.r);
+                applicable.r.r_id = e->ruleset.back().r_id;
                 emit rule_generated(r.id, applicable.index);
             }
         }
@@ -235,6 +236,7 @@ void mape_loop::plan()
             r.operation = applicable.r.operation;
             r.timer = applicable.r.period;
             r.post = applicable.post;
+            r.r_id = applicable.r.r_id;
             qobject_cast<effector*>(k->get_device(applicable.id))->ruleset[applicable.index].last_use = k->loops_counter;
             ex_plan += r;
 
@@ -285,6 +287,7 @@ void mape_loop::execute()
         r.start_loop = k->loops_counter;
         r.operation = temp.operation;
         r.post = temp.post;
+        r.r_id = temp.r_id;
         k->exec_rules.append(r);
     }
     emit executed(i);

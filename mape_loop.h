@@ -9,7 +9,7 @@
 
 #define NUM_OF_CLASSES 1
 
-struct to_execute {int id; QList<parameter> operation; int timer; QList<post_cond> post;};
+struct to_execute {int id; QList<parameter> operation; int timer; QList<post_cond> post; int r_id;};
 
 struct class_list_el {dev_parameters dev; QList<QList<history_value>> hist; QList<int> deltas;};
 

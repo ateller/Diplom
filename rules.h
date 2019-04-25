@@ -25,7 +25,7 @@ struct condition{int dev_id; parameter p;};
 struct post_cond{int dev_id; parameter p; int time;};
 //Значение, на сколько изменится и время, за которое это произойдет
 
-struct rule{QList<condition> pre; QList<parameter> operation; int period; int last_use;};
+struct rule{int r_id; QList<condition> pre; QList<parameter> operation; int period; int last_use;};
 
 #endif // RULES_H
 

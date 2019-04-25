@@ -2,7 +2,9 @@
 
 void effector::add_rule(rule r)
 {
+    r.r_id = r_id_counter;
     ruleset += r;
+    r_id_counter++;
 }
 
 void effector::delete_rule(int i)
@@ -15,6 +17,7 @@ heater::heater()
     flow_t = 20;
     wind_power = 0;
     vel = 2;
+    r_id_counter = 0;
     update();
 }
 
@@ -152,6 +155,7 @@ window::window()
     percent_opened = 0;
     h = 1.5;
     mu = static_cast<float> (0.6);
+    r_id_counter = 0;
     update();
 }
 

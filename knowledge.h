@@ -21,7 +21,7 @@ struct post_state{QList<post_cond> post; int time;};
 struct relation{val d1; val d2; int time;};
 struct weighed_rel{relation r; int w;};
 
-struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop; QList<post_cond> post; };
+struct executing_rule{int id; QList<parameter> operation; int timer; int start_loop; QList<post_cond> post; int r_id;};
 
 class knowledge: public QObject
 {

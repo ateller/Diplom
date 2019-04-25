@@ -750,16 +750,17 @@ int mape_loop::prognose_distance(QList<post_cond> post, int time, QList<to_execu
     foreach(executing_rule r, k->exec_rules)
     {
         if(!r.interrupted)
-            k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer);
+            k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer, false);
     }
     foreach(to_execute r, additional)
     {
-        k->apply_post(state, r.post, 0, r.timer);
+        k->apply_post(state, r.post, 0, r.timer, false);
     }
 
     QList<dev_parameters> without = *state;
-    k->apply_post(state, post, 0, time);
+    k->apply_post(state, post, 0, time, false);
 
     int dist = k->distance(without) - k->distance(*state);
+    delete state;
     return dist;
 }

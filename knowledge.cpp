@@ -196,7 +196,18 @@ int knowledge::indexof(int id)
 
 void knowledge::finish_execution(executing_rule e)
 {
+    if(!e.interrupted)
+    {
+        QList<dev_parameters> beg_state = history_state(e.start_loop);
+        foreach(executing_rule r, exec_rules)
+        {
+            if(!r.interrupted)
+            {
 
+                //apply_post(&beg_state, r.post )
+            }
+        }
+    }
 }
 
 void knowledge::save(QFile* f)
@@ -710,7 +721,7 @@ QList<condition> knowledge::create_pre()
     return pre;
 }
 
-void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, int time_before, int time)
+void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, int time_before, int time, bool after)
 {
     foreach(post_cond p, post)
     {
@@ -726,11 +737,30 @@ void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, 
                     {
                         if(p.p.type != SAME)
                         {
-                            int t = p.time - time_before;
+                            int t;
+                            if(!after)
+                            {
+                                t = p.time - time_before;
+                                //Время, которое занимает полное изменение в пост минус время, прошедшее с
+                                //начала правила до момента, в котором происходит наш стейт
+                            }
+                            else
+                            {
+                                t = time - time_before;
+                                //Время, которое занимает стейт минус время с начала стейта до начала правила
+                            }
                             if(t > 0)
                             {
-                                if(t > time) t = time;
-                                //Нужно найти время пересечения действия посткондишона с периодом
+                                if(!after)
+                                {
+                                    if(t > time) t = time;
+                                    //Что больше - пересечение или период стейта
+                                }
+                                else
+                                {
+                                    if(t > p.time) t = p.time;
+                                    //Что больше - пересечение или период поста
+                                }
 
                                 double k = t/p.time;
                                 //От времени зависит действие
@@ -1228,6 +1258,52 @@ val knowledge::subtract(val what, val from, int type)
     case F_SIZE:
         res.f = from.f - what.f;
         break;
+    }
+    return res;
+}
+
+QList<dev_parameters> knowledge::history_state(int loop)
+{
+    QList<dev_parameters> res;
+    foreach(record r, sys_model)
+    {
+        dev_parameters dev;
+        dev.id = r.dev.id;
+        foreach(history h, r.histories)
+        {
+            QList<history_value>::iterator i = h.series.begin();
+            for(;i != h.series.end(); i++)
+            {
+                if((*i).cycle_number > loop)
+                {
+                    break;
+                }
+            }
+            parameter p = r.dev.par[h.index];
+            p.value = (*(i - 1)).value;
+            dev.par.append(p);
+        }
+        res.append(dev);
+    }
+    foreach(record r, env_model)
+    {
+        dev_parameters dev;
+        dev.id = r.dev.id;
+        foreach(history h, r.histories)
+        {
+            QList<history_value>::iterator i = h.series.begin();
+            for(;i != h.series.end(); i++)
+            {
+                if((*i).cycle_number > loop)
+                {
+                    break;
+                }
+            }
+            parameter p = r.dev.par[h.index];
+            p.value = (*(i - 1)).value;
+            dev.par.append(p);
+        }
+        res.append(dev);
     }
     return res;
 }

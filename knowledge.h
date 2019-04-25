@@ -55,10 +55,11 @@ public:
     QList<executing_rule> exec_rules;
     post_state create_postcond(int id, QList<parameter> operation);
     bool same_class(QList<int>, QList<int>);
-    void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
+    void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time, bool before_after);
     parameter get_post(parameter delta);
     QList<condition> create_pre();
     val subtract(val what, val from, int type);
+    QList<dev_parameters> history_state(int loop);
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:

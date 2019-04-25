@@ -194,9 +194,9 @@ int knowledge::indexof(int id)
     }
 }
 
-void knowledge::finish_execution(QList<executing_rule>::iterator i)
+void knowledge::finish_execution(executing_rule e)
 {
-    exec_rules.erase(i);
+
 }
 
 void knowledge::save(QFile* f)

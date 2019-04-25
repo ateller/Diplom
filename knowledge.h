@@ -45,7 +45,7 @@ public:
     int indexof(sensor* s);
     int indexof(effector* e);
     int indexof(int);
-    void finish_execution(QList<executing_rule>::iterator);
+    void finish_execution(executing_rule);
     void save(QFile *f);
     void save_record (record, QDataStream *);
     record import_record (QDataStream*);

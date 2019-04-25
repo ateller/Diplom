@@ -64,7 +64,14 @@ void mape_loop::analysis()
         }
         if ((*i).timer == 0)
         {
-            k->finish_execution(i);
+            executing_rule ended = *i;
+            //Скопировали правило
+            i--;
+            //Отъехали итератором назад
+            k->exec_rules.erase(i+1);
+            //Удалили тот, на котором стояли
+            k->finish_execution(ended);
+            //Финишнули тот
         }
     }
 

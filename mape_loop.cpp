@@ -56,7 +56,8 @@ void mape_loop::analysis()
     {
         if((k->loops_counter - (*i).start_loop) == 1)
         {
-            if(!did_executed((*i).operation, &k->sys_model[k->indexof((*i).id)].histories))
+            record *r = &k->sys_model[k->indexof((*i).id)];
+            if(!did_executed( &r->dev.par, (*i).operation, &r->histories))
             {
                 interrupt_executing(i);
             }
@@ -392,7 +393,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
                 }
                 else {
                     o.value.b = 0;
-                    o.type = INCREASE;
+                    o.type = DECREASE;
                 }
                 break;
             case COEFF:
@@ -590,12 +591,117 @@ bool mape_loop::check_par(int id, parameter p)
 
 void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
 {
-
+    (*r).post.clear();
+    //Последствий не будет
+    (*r).timer = 10;
+    //Чтобы нельзя было трогать эти параметры пока (дадим шанс скрафтить больше правил)
+    (*r).interrupted = true;
+    //Не проверять в конце и не применять пост в прогнозах
+    record *rec = &k->sys_model[k->indexof((*r).id)];
+    QList<rule> *set = &qobject_cast<effector*>(rec->pointer)->ruleset;
+    QList<rule>::iterator f = set->begin();
+    for(; f != set->end(); f++)
+    {
+        if((*f).r_id == (*r).r_id)
+        {
+            (*f).period = 10;
+            (*f).failure_rate += 0.35;
+        }
+    }
+    //Поменяли период и добавили штраф в самом правиле
+    foreach(parameter op, (*r).operation)
+    {
+        foreach(history h, rec->histories)
+        {
+            if(op.index == h.index)
+            {
+                if(h.series.back().cycle_number == k->loops_counter)
+                {
+                    rec->pointer->to_be_controlled(op.index, (*(h.series.end() - 2)).value);
+                }
+            }
+        }
+    }
+    //Откатили все изменения за последний цикл
 }
 
-bool mape_loop::did_executed(QList<parameter> op, QList<history> *h)
+bool mape_loop::did_executed(QList<parameter> *par, QList<parameter> op, QList<history> *h)
 {
+    foreach(parameter p, op)
+    {
+        foreach(history temp_h, *h)
+        {
+            if(temp_h.index == p.index)
+            {
+                int type = (*par)[p.index].type;
+                switch (p.type) {
+                case INCREASE:
+                    if(temp_h.series.back().cycle_number != k->loops_counter)
+                        return false;
+                    else
+                    {
+                       if(!is_equal(sum((*(temp_h.series.end() - 2)).value, p.value, type), temp_h.series.back().value, type))
+                           return  false;
+                    }
+                    break;
+                case DECREASE:
+                    if(temp_h.series.back().cycle_number != k->loops_counter)
+                        return false;
+                    else
+                    {
+                        if(!is_equal(k->subtract(p.value, (*(temp_h.series.end() - 2)).value, type), temp_h.series.back().value, type))
+                            return  false;
+                    }
+                    break;
+                case ASSIGN:
+                    if(!is_equal(p.value, temp_h.series.back().value, type))
+                        return false;
+                    break;
+                }
+            }
+        }
+    }
+    return true;
+}
 
+bool mape_loop::is_equal(val one, val two, int type)
+{
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        if(one.i == two.i)
+            return true;
+        break;
+    case ON_OFF:
+        if(one.b == two.b)
+            return true;
+        break;
+    case COEFF:
+    case F_SIZE:
+        if(one.f == two.f)
+            return true;
+        break;
+    }
+    return false;
+}
+
+val mape_loop::sum(val one, val two, int type)
+{
+    val res;
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        res.i = one.i + two.i;
+        return res;
+    case ON_OFF:
+        res.b = 1;
+        break;
+    case COEFF:
+    case F_SIZE:
+        res.f = one.f + two.f;
+        break;
+    }
+    return res;
 }
 
 bool compare_cl(const class_list l1, const class_list l2)

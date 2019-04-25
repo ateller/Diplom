@@ -3,6 +3,7 @@
 void effector::add_rule(rule r)
 {
     r.r_id = r_id_counter;
+    r.failure_rate = 0;
     ruleset += r;
     r_id_counter++;
 }

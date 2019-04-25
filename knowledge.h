@@ -58,6 +58,7 @@ public:
     void apply_post(QList<dev_parameters>*state, QList<post_cond> post, int time_before, int time);
     parameter get_post(parameter delta);
     QList<condition> create_pre();
+    val subtract(val what, val from, int type);
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:
@@ -68,7 +69,6 @@ private:
     weighed_rel norm_rel(int start, int fin, val d_d, val d_i, int type_d, int type_i, bool whose, val must);
     double calc_k(val v, int t, val m);
     val apply_k(double k, int t, val v);
-    val subtract(val what, val from, int type);
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
     void add_pre_cond(QList<condition> *pre, parameter p, int id);

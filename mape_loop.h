@@ -49,7 +49,9 @@ private:
     bool uses(int id_1, QList<parameter> operation, int id_2, parameter p);
     bool check_par(int id, parameter p);
     void interrupt_executing(QList<executing_rule>::iterator r);
-    bool did_executed(QList<parameter> op, QList<history> *h);
+    bool did_executed(QList<parameter> *par, QList<parameter> op, QList<history> *h);
+    bool is_equal(val one, val two, int type);
+    val sum(val one, val two, int type);
 signals:
     void system_update();
     void monitor_completed();

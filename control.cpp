@@ -744,7 +744,7 @@ void control::delete_all_dev_widgets()
 
 void control::create_all_dev_widgets()
 {
-    int i = 0;;
+    int i = 0;
     foreach(record temp, manager.k->env_model)
     {
         add_dev_widget(temp.pointer, temp.dev.id);

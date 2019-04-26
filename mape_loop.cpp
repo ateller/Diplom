@@ -46,6 +46,7 @@ void mape_loop::monitor()
 {
     emit system_update();
     k->upd();
+    k->upd_posts();
     emit monitor_completed();
 }
 

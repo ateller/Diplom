@@ -1308,6 +1308,36 @@ QList<dev_parameters> knowledge::history_state(int loop)
     return res;
 }
 
+void knowledge::upd_posts()
+{
+    if(exec_rules.isEmpty())
+    {
+        first_start = 0;
+        if(!fin_posts.isEmpty())
+            fin_posts.clear();
+    }
+    else
+    {
+        first_start = exec_rules.first().start_loop;
+        QList<post_state>::iterator i = fin_posts.begin();
+        while(i != fin_posts.end())
+        {
+            QList<post_cond>::iterator j = (*i).post.begin();
+            while(j != (*i).post.end())
+            {
+                if(((*i).time + (*j).time) <= first_start)
+                    j = (*i).post.erase(j);
+                else
+                    j++;
+            }
+            if((*i).post.isEmpty())
+                i = fin_posts.erase(i);
+            else
+                i++;
+        }
+    }
+}
+
 double knowledge::add_val(val what, int weight, int type)
 {
     double res = 0;

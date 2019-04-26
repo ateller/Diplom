@@ -60,6 +60,9 @@ public:
     QList<condition> create_pre();
     val subtract(val what, val from, int type);
     QList<dev_parameters> history_state(int loop);
+    int first_start;
+    QList<post_state> fin_posts;
+    void upd_posts();
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:

@@ -53,7 +53,7 @@ void mape_loop::monitor()
 void mape_loop::analysis()
 {
     QList<executing_rule>::iterator i = k->exec_rules.begin();
-    for(; i != k->exec_rules.end(); i++)
+    while(i != k->exec_rules.end())
     {
         if((k->loops_counter - (*i).start_loop) == 1)
         {
@@ -67,12 +67,14 @@ void mape_loop::analysis()
         {
             executing_rule ended = *i;
             //Скопировали правило
-            i--;
-            //Отъехали итератором назад
-            k->exec_rules.erase(i+1);
+            i = k->exec_rules.erase(i);
             //Удалили тот, на котором стояли
             k->finish_execution(ended);
             //Финишнули тот
+        }
+        else
+        {
+            i++;
         }
     }
 
@@ -751,11 +753,11 @@ int mape_loop::prognose_distance(QList<post_cond> post, int time, QList<to_execu
     foreach(executing_rule r, k->exec_rules)
     {
         if(!r.interrupted)
-            k->apply_post(state, r.post, k->loops_counter - r.start_loop, r.timer, false);
+            k->apply_post(state, r.post, k->loops_counter - r.start_loop, time, false);
     }
     foreach(to_execute r, additional)
     {
-        k->apply_post(state, r.post, 0, r.timer, false);
+        k->apply_post(state, r.post, 0, time, false);
     }
 
     QList<dev_parameters> without = *state;

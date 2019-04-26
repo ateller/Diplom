@@ -196,6 +196,18 @@ int knowledge::indexof(int id)
 
 void knowledge::finish_execution(executing_rule e)
 {
+    record *rec = &sys_model[indexof(e.id)];
+    QList<rule> *set = &qobject_cast<effector*>(rec->pointer)->ruleset;
+    QList<rule>::iterator f = set->begin();
+    for(; f != set->end(); f++)
+    {
+        if((*f).r_id == e.r_id)
+        {
+            break;
+        }
+    }
+    if(f == set->end()) return;
+
     if(!e.interrupted)
     {
         QList<dev_parameters> beg_state = history_state(e.start_loop);
@@ -203,11 +215,196 @@ void knowledge::finish_execution(executing_rule e)
         {
             if(!r.interrupted)
             {
+                if(r.start_loop <= e.start_loop)
+                    apply_post(&beg_state, r.post, e.start_loop - r.start_loop, loops_counter - e.start_loop, false);
+                else
+                    apply_post(&beg_state, r.post, r.start_loop - e.start_loop, loops_counter - e.start_loop, true);
+            }
+        }
+        foreach(post_state p, fin_posts)
+        {
+            if(p.time <= e.start_loop)
+                apply_post(&beg_state, p.post, e.start_loop - p.time, loops_counter - e.start_loop, false);
+            else
+                apply_post(&beg_state, p.post, p.time - e.start_loop, loops_counter - e.start_loop, true);
+        }
+        //Применили к стейту все постусловия
 
-                //apply_post(&beg_state, r.post )
+        QList<post_cond> real_post = create_real_post(&beg_state, loops_counter - e.start_loop);
+
+        double penny = rate_success(e.post, real_post);
+        post_state fin;
+        fin.time = e.start_loop;
+        if(penny > 0.5)
+        {
+            fin.post = real_post;
+        }
+        else {
+            fin.post = e.post;
+        }
+
+        (*f).failure_rate += penny;
+    }
+
+    if((*f).failure_rate > 1)
+    {
+        set->erase(f);
+        emit r_del(e.id);
+    }
+}
+
+QList<post_cond> knowledge::create_real_post(QList<dev_parameters> *state, int time)
+{
+    QList<post_cond> real_post;
+    foreach(dev_parameters d, *state)
+    {
+        dev_parameters now;
+
+        if(d.id < 0) now = env_model[indexof(d.id)].dev;
+        else now = sys_model[indexof(d.id)].dev;
+
+        foreach(parameter p, d.par)
+        {
+            post_cond temp;
+            temp.dev_id = d.id;
+            temp.time = time;
+            parameter now_p = now.par[p.index];
+
+            switch (p.type) {
+            case TEMPERATURE:
+            case PERCENT:
+                now_p.value.i = now_p.value.i - p.value.i;
+                temp.p = get_post(now_p);
+                break;
+            case ON_OFF:
+                if(p.value.b == now_p.value.b)
+                {
+                    temp.p = now_p;
+                    temp.p.type = SAME;
+                }
+                else if (!p.value.b && now_p.value.b) {
+                    now_p.value.b = 1;
+                    temp.p = now_p;
+                    temp.p.type = INCREASE;
+                }
+                else {
+                    now_p.value.b = 0;
+                    temp.p = now_p;
+                    temp.p.type = DECREASE;
+                }
+                break;
+            case COEFF:
+            case F_SIZE:
+                now_p.value.f = now_p.value.f - p.value.f;
+                temp.p = get_post(now_p);
+                break;
+            }
+            real_post.append(temp);
+        }
+    }
+    return real_post;
+}
+
+double knowledge::rate_success(QList<post_cond> post, QList<post_cond> real_post)
+{
+    double sum = 0;
+    int count = 0;
+    foreach(post_cond p, post)
+    {
+        foreach(post_cond r_p, real_post)
+        {
+            if((r_p.dev_id == p.dev_id) && (r_p.p.index == p.p.index))
+            {
+                int type;
+                if(r_p.dev_id < 0)
+                    type = env_model[indexof(r_p.dev_id)].dev.par[r_p.p.index].type;
+                else
+                    type = sys_model[indexof(r_p.dev_id)].dev.par[r_p.p.index].type;
+
+                count ++;
+                if(r_p.p.type == p.p.type)
+                {
+                    if(p.p.type == SAME)
+                        break;
+                    else
+                    {
+                        sum+=accuracy(p.p.value,r_p.p.value,type);
+                    }
+                }
+                else
+                {
+                    switch (p.p.type) {
+                    case INCREASE:
+                        if(r_p.p.type == DECREASE)
+                            sum+=accuracy(p.p.value, r_p.p.value, type);
+                        else
+                            sum+=1;
+                        break;
+                    case DECREASE:
+                        if(r_p.p.type == INCREASE)
+                            sum+=accuracy(p.p.value, r_p.p.value, type);
+                        else
+                            sum+=1;
+                        break;
+                    case SAME:
+                            sum+=accuracy(r_p.p.value,type);
+                        break;
+                    }
+                }
             }
         }
     }
+    if(count) return (sum/count);
+    else return 0;
+}
+
+double knowledge::accuracy(val post, val real, int type)
+{
+    double d = 0;
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        d = fabs(static_cast<double>(post.i - real.i)) / post.i;
+        break;
+    case ON_OFF:
+        break;
+    case COEFF:
+    case F_SIZE:
+        d = fabs(static_cast<double>(post.f - real.f)) / static_cast<double>(post.f);
+        break;
+    }
+    if(d > 1)
+    {
+        d = 2 - d;
+        if(d < 0)
+            d = 0;
+    }
+    return d;
+}
+
+double knowledge::accuracy(val v, int type)
+{
+    double d = 0;
+    switch (type) {
+    case TEMPERATURE:
+    case PERCENT:
+        d = fabs(static_cast<double>(v.i)) / 5;
+        break;
+    case ON_OFF:
+        d = 1;
+        break;
+    case COEFF:
+    case F_SIZE:
+        d = fabs(static_cast<double>(v.f)) / static_cast<double>(0.5);
+        break;
+    }
+    if(d > 1)
+    {
+        d = 2 - d;
+        if(d < 0)
+            d = 0;
+    }
+    return d;
 }
 
 void knowledge::save(QFile* f)

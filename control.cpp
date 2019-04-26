@@ -34,6 +34,7 @@ control::control(QWidget *parent) :
 
     connect(manager.k, SIGNAL(added(int)), SLOT(upd_goal(int)));
     connect(&manager, SIGNAL(rule_generated(int, int)), this, SLOT(add_gen_rule(int, int)));
+    connect(manager.k, SIGNAL(r_del(int)), SLOT(delete_rule(int)));
 
     w.set(&manager);
 
@@ -605,6 +606,37 @@ void control::delete_rule()
         QPushButton* show_r = qobject_cast<QPushButton*>(dev_rules->parentWidget()->layout()->itemAt(1)->layout()->itemAt(2)->widget());
         show_r->toggle();
         show_r->setEnabled(0);
+    }
+}
+
+void control::delete_rule(int id)
+{
+    QVBoxLayout* l = qobject_cast<QVBoxLayout*>(ui->componentsListScrollArea->layout());
+    for(int j = 0; j < l->count(); j++)
+    {
+        QWidget* w = l->itemAt(j)->widget();
+        if(w->property("id").value<int>() == id)
+        {
+            QVBoxLayout* rules_layout = qobject_cast<QVBoxLayout*>(w->layout()->itemAt(3)->widget()->layout());
+
+            int n = rules_layout->count() - 1;
+            QLayoutItem* del_rule = rules_layout->takeAt(n);
+
+            QLayoutItem *child;
+            while ((child = del_rule->layout()->takeAt(0)) != nullptr) {
+                delete child->widget();
+                delete child;
+            }
+            delete del_rule;
+
+            if (!n) {
+                QPushButton* show_r = qobject_cast<QPushButton*>(w->layout()->itemAt(1)->layout()->itemAt(2)->widget());
+                show_r->toggle();
+                show_r->setEnabled(0);
+            }
+
+            break;
+        }
     }
 }
 

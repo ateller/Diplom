@@ -67,6 +67,7 @@ public slots:
     void update_goal(int id, int par, val new_val);
 signals:
     void added(int);
+    void r_del(int);
 private:
     void upd_history(QList<record>::iterator);
     bool is_peace(QList<history_value>::iterator beg,QList<history_value>::iterator i, int type);
@@ -76,6 +77,10 @@ private:
     double add_val(val what, int weight, int type);
     val avg(double sum, int count, int type);
     void add_pre_cond(QList<condition> *pre, parameter p, int id);
+    QList<post_cond> create_real_post(QList<dev_parameters> *state, int time);
+    double rate_success(QList<post_cond> post, QList<post_cond> real_post);
+    double accuracy(val post, val real, int type);
+    double accuracy(val v, int type);
 };
 
 template<typename v>

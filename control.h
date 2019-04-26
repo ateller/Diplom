@@ -52,6 +52,7 @@ private slots:
     void loop(int n);
     void show_rule();
     void delete_rule();
+    void delete_rule(int id);
     void control_device(int);
     void control_device(bool);
     void control_device(double);

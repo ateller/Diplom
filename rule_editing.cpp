@@ -197,6 +197,7 @@ void rule_editing::init(knowledge* k, int eff_index)
 
     QSpinBox *n = new QSpinBox();
     connect(n, SIGNAL(valueChanged(int)), SLOT(change_period(int)));
+    n->setMinimum(1);
     period->addWidget(n);
     //Счетчик
 

@@ -561,7 +561,14 @@ void control::show_rule()
         }
     }
 
-    text.append("\nThe max. frequency of application: " + QString::number(r.period));
+    if(r.last_use < 0)
+        text.append("\nThis rule wasn't applied yet ");
+    else
+        text.append("\nThe last time the rule was applied in loop " + QString::number(r.last_use));
+
+    text.append("\nCurrent failure rate of rule is " + QString::number(r.failure_rate));
+
+    text.append("\nCurrent max. frequency of application: " + QString::number(r.period));
     rule_text* r_t = new rule_text;
     r_t->setText(text, temp->name + ": rule " + QString::number(i));
     r_t->show();
@@ -688,6 +695,7 @@ void control::open_file()
                     delete f;
                     delete_all_dev_widgets();
                     create_all_dev_widgets();
+                    connect(manager.k, SIGNAL(r_del(int)), SLOT(delete_rule(int)));
                     return;
                 }
             }

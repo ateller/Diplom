@@ -1405,8 +1405,11 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         if((*i).cycle_number > loop) continue;
         //Это значит, история зависимого началась позже истории влияющего, надо проехать вперед
 
-        if(is_peace(dep.begin(), i,dep_type) == false) continue;
-        //Если изменение случилось не в покое, не подходит
+        if((loop - (*i).cycle_number) < 100)
+            //Если перед изменением инфла, деп не менялся 100 циклов, это покой
+            if(is_peace(dep.begin(), i,dep_type) == false) continue;
+            //Если нет, то может прошлое в покое?
+            //Если изменение случилось не в покое, не подходит
 
         QList<history_value>::iterator j = i + 2;
         //Итое в покое, i + 1 может быть как угодно, а на j изменение должно было отразиться.

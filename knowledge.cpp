@@ -412,6 +412,7 @@ void knowledge::save(QFile* f)
     QDataStream str(f);
 
     str << loops_counter;
+    str << id_counter;
     str << env_model.size();
 
     foreach(record temp, env_model)
@@ -424,9 +425,12 @@ void knowledge::save(QFile* f)
     foreach(record temp, sys_model)
     {
         save_record(temp, &str);
-        str << qobject_cast <effector*> (temp.pointer)->ruleset.size();
+        str << qobject_cast<effector*>(temp.pointer)->r_id_counter;
+        str << qobject_cast<effector*>(temp.pointer)->ruleset.size();
         foreach(rule temp_rule, qobject_cast <effector*> (temp.pointer)->ruleset)
         {
+            str << temp_rule.r_id;
+            str << temp_rule.failure_rate;
             str << temp_rule.pre.size();
             foreach (condition temp_c, temp_rule.pre)
             {
@@ -446,6 +450,54 @@ void knowledge::save(QFile* f)
             str << temp_rule.period;
         }
     }
+
+    str << exec_rules.size();
+
+    foreach(executing_rule e, exec_rules)
+    {
+        str << e.id;
+
+        str << e.post.size();
+        foreach(post_cond temp, e.post)
+        {
+            str << temp.time;
+            str << temp.dev_id;
+            str << temp.p.index;
+            str << temp.p.value.f;
+            str << temp.p.type;
+        }
+
+        str << e.r_id;
+        str << e.timer;
+
+        str << e.operation.size();
+        foreach(parameter temp, e.operation)
+        {
+            str << temp.index;
+            str << temp.value.f;
+            str << temp.type;
+        }
+
+        str << e.start_loop;
+        str << e.interrupted;
+    }
+
+    str << first_start;
+
+    str << fin_posts.size();
+    foreach(post_state p, fin_posts)
+    {
+        str << p.time;
+        str << p.post.size();
+        foreach(post_cond temp, p.post)
+        {
+            str << temp.time;
+            str << temp.dev_id;
+            str << temp.p.index;
+            str << temp.p.value.f;
+            str << temp.p.type;
+        }
+    }
 }
 
 void knowledge::save_record(record temp, QDataStream* str)
@@ -453,6 +505,7 @@ void knowledge::save_record(record temp, QDataStream* str)
     *str << temp.pointer->get_type();
     *str << temp.pointer->name;
 
+    *str << temp.dev.id;
     *str << temp.dev.par.size();
     foreach(parameter temp_p, temp.dev.par)
     {
@@ -496,6 +549,7 @@ int knowledge::import_from_file(QFile* f)
 {
     QDataStream str(f);
     str >> loops_counter;
+    str >> id_counter;
 
     int n;
 
@@ -512,6 +566,8 @@ int knowledge::import_from_file(QFile* f)
         if (f->atEnd()) return 1;
         sys_model += import_record(&str);
 
+        str >> qobject_cast<effector*>(sys_model.back().pointer)->r_id_counter;
+
         int k;
 
         if (f->atEnd()) return 1;
@@ -519,6 +575,9 @@ int knowledge::import_from_file(QFile* f)
         str >> k;
         for (int j = 0; j < k; k++) {
             rule r;
+
+            str >> r.r_id;
+            str >> r.failure_rate;
 
             int m;
             str >> m; // .pre.size
@@ -543,9 +602,72 @@ int knowledge::import_from_file(QFile* f)
             str >> r.last_use;
             str >> r.period;
 
-            qobject_cast <effector*>(sys_model.back().pointer)->add_rule(r);
+            qobject_cast<effector*>(sys_model.back().pointer)->add_rule(r, true);
         }
     }
+
+    str >> n; //exec_rules.size
+
+    for (int i = 0; i < n; i++)
+    {
+        executing_rule e;
+        str >> e.id;
+
+        int m;
+        str >> m; //e.post.size
+        for (int l = 0; l < m; l++)
+        {
+            post_cond temp;
+            str >> temp.time;
+            str >> temp.dev_id;
+            str >> temp.p.index;
+            str >> temp.p.value.f;
+            str >> temp.p.type;
+            e.post.append(temp);
+        }
+
+        str >> e.r_id;
+        str >> e.timer;
+
+        str >> m; //e.operation.size
+        for (int l = 0; l < m; l++)
+        {
+            parameter temp;
+            str >> temp.index;
+            str >> temp.value.f;
+            str >> temp.type;
+            e.operation.append(temp);
+        }
+
+        str >> e.start_loop;
+        str >> e.interrupted;
+
+        exec_rules.append(e);
+    }
+
+    str >> first_start;
+
+    str >> n; //fin_posts.size()
+    for (int i = 0; i < n; i++)
+    {
+        post_state p;
+        str >> p.time;
+
+        int m;
+        str >> m; //p.post.size
+        for (int l = 0; l < m; l++)
+        {
+            post_cond temp;
+            str >> temp.time;
+            str >> temp.dev_id;
+            str >> temp.p.index;
+            str >> temp.p.value.f;
+            str >> temp.p.type;
+            p.post.append(temp);
+        }
+        fin_posts.append(p);
+    }
+
     return 0;
 }
 
@@ -557,20 +679,17 @@ record knowledge::import_record(QDataStream* str)
     switch (type) {
     case THERMOMETER:
         temp.pointer = new thermometer;
-        temp.dev.id = -id_counter;
         break;
     case HEATER:
         temp.pointer = new heater;
-        temp.dev.id = id_counter;
         break;
     case WINDOW:
         temp.pointer = new window;
-        temp.dev.id = id_counter;
         break;
     }
-    id_counter++;
 
     *str >> temp.pointer->name;
+    *str >> temp.dev.id;
 
     temp.names = temp.pointer->get_names();
 

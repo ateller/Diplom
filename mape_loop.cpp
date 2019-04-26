@@ -236,7 +236,7 @@ void mape_loop::plan()
                 effector* e = qobject_cast<effector*>(k->sys_model[k->indexof(r.id)].pointer);
                 applicable.index = e->ruleset.size();
 
-                e->add_rule(r.r);
+                e->add_rule(r.r, false);
                 applicable.r.r_id = e->ruleset.back().r_id;
                 emit rule_generated(r.id, applicable.index);
             }

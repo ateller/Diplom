@@ -12,10 +12,9 @@ class effector : public device
 Q_OBJECT
 public:
     QList<rule> ruleset;
-    void add_rule(rule r);
+    void add_rule(rule r, bool from_file);
     void delete_rule(int i);
     virtual void exec_rule(QList<parameter> operation) = 0;
-protected:
     int r_id_counter;
 };
 

@@ -1,11 +1,14 @@
 #include "effector.h"
 
-void effector::add_rule(rule r)
+void effector::add_rule(rule r, bool from_file)
 {
-    r.r_id = r_id_counter;
-    r.failure_rate = 0;
+    if(!from_file)
+    {
+        r.r_id = r_id_counter;
+        r.failure_rate = 0;
+        r_id_counter++;
+    }
     ruleset += r;
-    r_id_counter++;
 }
 
 void effector::delete_rule(int i)

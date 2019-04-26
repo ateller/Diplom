@@ -449,7 +449,7 @@ void control::add_rule()
     {
         rule r = edit->get_rule();
         if((!r.operation.isEmpty()) && (!r.pre.isEmpty())) {
-            temp->add_rule(r);
+            temp->add_rule(r, false);
 
             dev_w->layout()->itemAt(1)->layout()->itemAt(2)->widget()->setEnabled(1);
             //Включаем кнопку показа списка правил

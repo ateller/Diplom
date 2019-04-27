@@ -1405,15 +1405,13 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         if((*i).cycle_number > loop) continue;
         //Это значит, история зависимого началась позже истории влияющего, надо проехать вперед
 
-        if((loop - (*i).cycle_number) < 100)
-            //Если перед изменением инфла, деп не менялся 100 циклов, это покой
-            if(is_peace(dep.begin(), i,dep_type) == false) continue;
-            //Если нет, то может прошлое в покое?
-            //Если изменение случилось не в покое, не подходит
+        if(is_peace(dep.begin(), i, loop - (*i).cycle_number ,dep_type) == false) continue;
+        //Если изменение случилось не в покое, не подходит
+        //Покой - не более чем одно изменение на 100 циклов
 
         QList<history_value>::iterator j = i + 2;
         //Итое в покое, i + 1 может быть как угодно, а на j изменение должно было отразиться.
-        for(;j != dep.end(); j++) if(is_peace(dep.begin(), j,dep_type)) break;
+        for(;j != dep.end(); j++) if(is_peace(dep.begin(), j, 0, dep_type)) break;
         //Нашли следующий период покоя после возмущения
         if(j == dep.end())
         {
@@ -1468,12 +1466,12 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
     return res;
 }
 
-bool knowledge::is_peace(QList<history_value>::iterator beg, QList<history_value>::iterator i, int type)
+bool knowledge::is_peace(QList<history_value>::iterator beg, QList<history_value>::iterator i, int add_time, int type)
 {
     if(i == beg) return true;
     //Если изменение произошло сразу после старта, оно в покое
 
-    int len = (*i).cycle_number - (*(i-1)).cycle_number;
+    int len = (*i).cycle_number - (*(i-1)).cycle_number + add_time;
 
     double derivative = 0;
     switch (type) {

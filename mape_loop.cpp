@@ -546,6 +546,10 @@ QList<splited> mape_loop::split(record r)
         {
             delta = k->delta(temp_p,temp_g.value);
         }
+        if(r.dev.id < 0)
+            if (delta == 0)
+                continue;
+        //Сенсоры с нулевой дельтой не нужны
 
         QList<history_value> temp_hv;
         //Берем его историю

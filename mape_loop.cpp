@@ -124,6 +124,7 @@ void mape_loop::plan()
             i++;
         }
     }
+    //Собрали списки
 
     for(int i = 0; i < NUM_OF_CLASSES; i++)
     {
@@ -494,14 +495,17 @@ generated_rule mape_loop::generate_rule(class_list *temp)
 
         if(delta > res.delta)
         {
-            res.r.pre = k->create_pre();
             res.r.period = post.time;
-            res.r.last_use = - post.time;
             res.r.operation = op;
             res.id = id;
             res.post = post;
             res.delta = delta;
         }
+    }
+    if(res.delta > 0)
+    {
+        res.r.pre = k->create_pre();
+        res.r.last_use = - res.r.period;
     }
     return res;
 }

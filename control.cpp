@@ -24,7 +24,7 @@ control::control(QWidget *parent) :
 
     m->addMenu(file);
     m->addMenu(add);
-    QAction* imit_edit = m->addAction("Edit imitation parametres");
+    QAction* imit_edit = m->addAction("Edit imitation parameters");
     connect(imit_edit, SIGNAL(triggered()), i.get_ctrl_pointer(), SLOT(show()));
 
     QAction* start = m->addAction("Start");
@@ -93,7 +93,7 @@ void control::add_dev_widget(device* temp, int id)
     QHBoxLayout *buttons = new QHBoxLayout;
     //Специальный лэйаут для кнопок
 
-    QPushButton* a = new QPushButton("Parametres");
+    QPushButton* a = new QPushButton("Parameters");
     a->setCheckable(1);
     //Можно нажать и отжать
 
@@ -120,21 +120,21 @@ void control::add_dev_widget(device* temp, int id)
     vertical->addLayout(buttons);
     //Добавляем в лейаут кнопки
 
-    QWidget* parametres_widget = new QWidget;
-    parametres_widget->hide();
+    QWidget* parameters_widget = new QWidget;
+    parameters_widget->hide();
     QVBoxLayout* form = new QVBoxLayout;
     form->setContentsMargins(2,0,1,0);
-    parametres_widget->setLayout(form);
+    parameters_widget->setLayout(form);
     //Добавляем параметры
 
-    QList<parameter> parametres = temp->get_list();
+    QList<parameter> parameters = temp->get_list();
     QList<QString> names = temp->get_names();
     //Получаем от устройства список параметров и значений
 
-    connect(a, SIGNAL(toggled(bool)), parametres_widget, SLOT(setVisible(bool)));
+    connect(a, SIGNAL(toggled(bool)), parameters_widget, SLOT(setVisible(bool)));
 
     int i = 0;
-    foreach(parameter p, parametres)
+    foreach(parameter p, parameters)
     {
         QHBoxLayout *row = new QHBoxLayout;
         QLabel *p_name = new QLabel(names[p.index]);
@@ -170,7 +170,7 @@ void control::add_dev_widget(device* temp, int id)
         form->addLayout(row);
         i++;
     }
-    vertical->addWidget(parametres_widget);
+    vertical->addWidget(parameters_widget);
 
     if (s != nullptr) {
         QWidget* rules_widget = new QWidget;

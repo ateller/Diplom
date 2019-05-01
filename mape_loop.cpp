@@ -208,7 +208,7 @@ void mape_loop::plan()
                 //Проверили по операции
 
                post_state post = k->create_postcond((*dev).dev.id, (*r).operation);
-               int delta = prognose_distance(post.post, post.time, ex_plan);
+               int delta = prognose_distance(post.post, k->max_time(post.time), ex_plan);
                if (delta <= 0) continue;
                if (delta > applicable.delta)
                {
@@ -415,7 +415,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
             }
             op.append(o);
             post = k->create_postcond((*dev).dev.id, op);
-            delta = prognose_distance(post.post, post.time, ex_plan);
+            delta = prognose_distance(post.post, k->max_time(post.time), ex_plan);
         }
         else
         {
@@ -481,7 +481,7 @@ generated_rule mape_loop::generate_rule(class_list *temp)
 
                     post_state post_t;
                     post_t = k->create_postcond((*it).dev.id, op_t);
-                    delta_t = prognose_distance(post_t.post, post_t.time, ex_plan);
+                    delta_t = prognose_distance(post_t.post, k->max_time(post_t.time), ex_plan);
                     if(delta_t > delta)
                     {
                         id = (*it).dev.id;

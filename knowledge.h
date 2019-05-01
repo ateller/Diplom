@@ -63,6 +63,7 @@ public:
     int first_start;
     QList<post_state> fin_posts;
     void upd_posts();
+    int max_time(int time);
 public slots:
     void update_goal(int id, int par, val new_val);
 signals:

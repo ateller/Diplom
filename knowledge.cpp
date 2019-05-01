@@ -1078,7 +1078,7 @@ void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, 
                                     //Что больше - пересечение или период поста
                                 }
 
-                                double k = t/p.time;
+                                double k = static_cast<double>(t)/p.time;
                                 //От времени зависит действие
 
                                 if(p.p.type == INCREASE){
@@ -1653,6 +1653,20 @@ void knowledge::upd_posts()
                 i++;
         }
     }
+}
+
+int knowledge::max_time(int time)
+{
+    if (exec_rules.isEmpty()) return time;
+    else {
+        QList<executing_rule>::iterator i = exec_rules.begin();
+        for(;i != exec_rules.end(); i++)
+        {
+            if((*i).timer > time)
+                time = (*i).timer;
+        }
+    }
+    return time;
 }
 
 double knowledge::add_val(val what, int weight, int type)

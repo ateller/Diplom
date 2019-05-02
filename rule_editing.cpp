@@ -192,12 +192,13 @@ void rule_editing::init(knowledge* k, int eff_index)
     g2->setStretch(g2->count()-1,1);
 
     QHBoxLayout *period = new QHBoxLayout;
-    period->addWidget(new QLabel ("The maximum frequency of rule application (once per n cycles)"));
+    period->addWidget(new QLabel ("The maximum frequency of rule application – once per"), 1, Qt::AlignRight);
     //Надпись
 
     QSpinBox *n = new QSpinBox();
     connect(n, SIGNAL(valueChanged(int)), SLOT(change_period(int)));
     n->setMinimum(1);
+    n->setSuffix(" cycles");
     period->addWidget(n);
     //Счетчик
 
@@ -207,6 +208,7 @@ void rule_editing::init(knowledge* k, int eff_index)
     //Счетчик ступеней
 
     ui->groupBox_2->hide();
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Next");
     connect(ui->buttonBox, SIGNAL(accepted()), SLOT(interstage()));
 }
 
@@ -384,6 +386,7 @@ void rule_editing::interstage()
     {
         ui->groupBox->hide();
         ui->groupBox_2->show();
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setText("OK");
         stage = 1;
     }
     else

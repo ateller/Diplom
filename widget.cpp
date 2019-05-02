@@ -22,6 +22,7 @@ void Widget::set(mape_loop *pointer)
     connect(manager, SIGNAL(executed(int)), SLOT(execute(int)));
     ui->groupBox->setLayout(new QVBoxLayout);
     ui->groupBox_2->setLayout(new QVBoxLayout);
+    ui->scrollAreaWidgetContents->setLayout(ui->horizontalLayout);
 }
 
 QString Widget::create_par_string(parameter p)

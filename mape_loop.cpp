@@ -2,7 +2,7 @@
 
 mape_loop::mape_loop()
 {
-    tolerance = 30;
+    tolerance = 15;
     k = new knowledge;
 }
 

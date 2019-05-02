@@ -14,6 +14,7 @@ imitation::imitation()
 
     QDoubleSpinBox* s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(temperature));
+    s->setSuffix(" degrees");
     s->setProperty("index", QVariant(0));
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Temperature", s);
@@ -28,21 +29,24 @@ imitation::imitation()
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(out_t));
+    s->setSuffix(" degrees");
     s->setProperty("index", QVariant(2));
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Outdoor temperature", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(v));
+    s->setSuffix(" cubic meters");
     s->setProperty("index", QVariant(3));
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Room volume", s);
 
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(air_h));
+    s->setSuffix(" meters");
     s->setProperty("index", QVariant(4));
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
-    l->addRow("Equal Pressure Altitude", s);
+    l->addRow("Equal pressure altitude", s);
 
     i_control->setFixedSize(375, i_control->sizeHint().height());
 }

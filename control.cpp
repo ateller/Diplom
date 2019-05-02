@@ -651,16 +651,16 @@ void control::loop(int n)
 {
     for(int j = 0; j < n; j++)
     {
+        foreach(record temp, manager.k->env_model)
+        {
+            i.sense(qobject_cast<sensor*>(temp.pointer));
+        }
         manager.loop();
         foreach(record temp, manager.k->sys_model)
         {
             i.effect(qobject_cast<effector*>(temp.pointer));
         }
         i.calculate_physics();
-        foreach(record temp, manager.k->env_model)
-        {
-            i.sense(qobject_cast<sensor*>(temp.pointer));
-        }
     }
     w.status();
 }

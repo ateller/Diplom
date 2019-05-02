@@ -18,11 +18,8 @@ void Widget::set(mape_loop *pointer)
 {
     manager = pointer;
     connect(ui->pushButton, SIGNAL(clicked(bool)), SLOT(loop()));
-    //connect(manager, SIGNAL(monitor_completed()), SLOT(monitor()));
-    //connect(manager, SIGNAL(analysis_completed()), SLOT(analysis()));
     connect(manager, SIGNAL(plan_completed(int)), SLOT(plan(int)));
     connect(manager, SIGNAL(executed(int)), SLOT(execute(int)));
-    //connect(manager, SIGNAL(done()), SLOT(status()));
     ui->groupBox->setLayout(new QVBoxLayout);
     ui->groupBox_2->setLayout(new QVBoxLayout);
 }
@@ -94,8 +91,6 @@ void Widget::analysis()
         status+=", adaptation is necessary";
     else {
         status+=", adaptation is not necessary";
-        //ui->label_2->setText("Plan status: ");
-        //ui->label_3->setText("Execute status: ");
     }
     ui->label->setText(status);
 }
@@ -104,14 +99,12 @@ void Widget::plan(int n)
 {
     planned_counter+=n;
     p_last = n;
-    //ui->label_2->setText("Plan status: " + QString::number(manager->ex_plan.size()) + " rules were planned for execution");
 }
 
 void Widget::execute(int n)
 {
     executed_counter+=n;
     ex_last = n;
-    //ui->label_3->setText("Execute status: " + QString::number(n) + " rules executed");
 }
 
 void Widget::loop()

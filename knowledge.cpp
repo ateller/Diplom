@@ -573,7 +573,7 @@ int knowledge::import_from_file(QFile* f)
         if (f->atEnd()) return 1;
 
         str >> k;
-        for (int j = 0; j < k; k++) {
+        for (int j = 0; j < k; j++) {
             rule r;
 
             str >> r.r_id;

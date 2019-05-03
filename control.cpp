@@ -800,6 +800,7 @@ void control::create_all_dev_widgets()
         foreach(rule temp_r, qobject_cast<effector*>(temp.pointer)->ruleset)
         {
             add_rule_widget(qobject_cast<QVBoxLayout*>(ui->componentsListScrollArea->layout()->itemAt(i)->widget()->layout()->itemAt(3)->widget()->layout()), j);
+            ui->componentsListScrollArea->layout()->itemAt(i)->widget()->layout()->itemAt(1)->layout()->itemAt(2)->widget()->setEnabled(1);
             j++;
         }
         i++;

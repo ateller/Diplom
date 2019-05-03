@@ -505,9 +505,10 @@ void knowledge::save_record(record temp, QDataStream* str)
     *str << temp.pointer->get_type();
     *str << temp.pointer->name;
 
+    temp.pointer->update();
     *str << temp.dev.id;
     *str << temp.dev.par.size();
-    foreach(parameter temp_p, temp.dev.par)
+    foreach(parameter temp_p, temp.pointer->get_list())
     {
         *str << temp_p.index;
         *str << temp_p.type;

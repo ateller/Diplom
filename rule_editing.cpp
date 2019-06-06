@@ -14,7 +14,6 @@ void rule_editing::init(knowledge* k, int eff_index)
     record temp;
     QVBoxLayout *g1 = new QVBoxLayout;
     ui->scrollAreaWidgetContents->setLayout(g1);
-    //В область условия добавляем лэйаут
 
     foreach(temp, k->sys_model)
     {
@@ -28,17 +27,13 @@ void rule_editing::init(knowledge* k, int eff_index)
 
             QHBoxLayout* l = new QHBoxLayout;
             condition->setLayout(l);
-            //Под условие лэйаут
 
             QPushButton *add = new QPushButton("Add to rule");
             connect(add, SIGNAL(clicked()), SLOT(add_cond()));
             connect(add, SIGNAL(clicked(bool)), add, SLOT(setEnabled(bool)));
             l->addWidget(add,1);
-            //Кнопка добавления
-
 
             l->addWidget(new QLabel(temp.pointer->name + ": " + temp.names[p.index]),2,Qt::AlignHCenter);
-            //Название
 
             if(temp.dev.par[p.index].type == ON_OFF) {
                 QCheckBox* val = createCheckBox(temp.names[p.index], i, 0);
@@ -68,7 +63,6 @@ void rule_editing::init(knowledge* k, int eff_index)
                 cond_type->setDisabled(1);
                 l->addWidget(cond_type,1);
                 l->addWidget(val,1);
-                //Больше меньше равно
             }
             g1->addWidget(condition,0,Qt::AlignTop);
             i++;
@@ -86,17 +80,14 @@ void rule_editing::init(knowledge* k, int eff_index)
 
             QHBoxLayout* l = new QHBoxLayout;
             condition->setLayout(l);
-            //Под условие лэйаут
 
             QPushButton *add = new QPushButton("Add to rule");
             connect(add, SIGNAL(clicked()), SLOT(add_cond()));
             connect(add, SIGNAL(clicked(bool)), add, SLOT(setEnabled(bool)));
             l->addWidget(add,1);
-            //Кнопка добавления
 
 
             l->addWidget(new QLabel(temp.pointer->name + ": " + temp.names[p.index]),2,Qt::AlignHCenter);
-            //Название
 
             if(temp.dev.par[p.index].type == ON_OFF) {
                 QCheckBox* val = createCheckBox(temp.names[p.index], i, 0);
@@ -126,7 +117,6 @@ void rule_editing::init(knowledge* k, int eff_index)
                 cond_type->setDisabled(1);
                 l->addWidget(cond_type,1);
                 l->addWidget(val,1);
-                //Больше меньше равно
             }
             g1->addWidget(condition,0,Qt::AlignTop);
             i++;
@@ -136,7 +126,6 @@ void rule_editing::init(knowledge* k, int eff_index)
 
     QVBoxLayout *g2 = new QVBoxLayout;
     ui->groupBox_2->setLayout(g2);
-    //Начинаем заполнять операцию
 
     temp = k->sys_model[eff_index];
     goal p;
@@ -153,10 +142,8 @@ void rule_editing::init(knowledge* k, int eff_index)
         connect(add, SIGNAL(clicked(bool)), SLOT(add_instr()));
         connect(add, SIGNAL(clicked(bool)), add, SLOT(setEnabled(bool)));
         l->addWidget(add,1);
-        //Кнопка
 
         l->addWidget(new QLabel(temp.names[p.index]), 2, Qt::AlignHCenter);
-        //Название
 
         if(temp.dev.par[p.index].type == ON_OFF) {
             QCheckBox* val = createCheckBox(temp.names[p.index], i, 0);
@@ -193,19 +180,16 @@ void rule_editing::init(knowledge* k, int eff_index)
 
     QHBoxLayout *period = new QHBoxLayout;
     period->addWidget(new QLabel ("The maximum frequency of rule application – once per"), 1, Qt::AlignRight);
-    //Надпись
 
     QSpinBox *n = new QSpinBox();
     connect(n, SIGNAL(valueChanged(int)), SLOT(change_period(int)));
     n->setMinimum(1);
     n->setSuffix(" cycles");
     period->addWidget(n);
-    //Счетчик
 
     g2->addLayout(period);
 
     stage = 2;
-    //Счетчик ступеней
 
     ui->groupBox_2->hide();
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Next");
@@ -229,7 +213,6 @@ void rule_editing::add_cond()
     n.dev_id = cond->property("id").value<int>();
     n.p.index = cond->property("Par_index").value<int>();
     n.p.type = 0;
-    //Определяем параметры условия
 
     cond->setProperty("Pre_index", QVariant(r.pre.size()));
 
@@ -254,7 +237,6 @@ void rule_editing::add_cond()
         QComboBox *type = qobject_cast<QComboBox*>(par->itemAt(2)->widget());
         connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_cond_mode(int)));
         type->setEnabled(1);
-        //Включаем выбор
     }
     else {
         QCheckBox* l = qobject_cast<QCheckBox*>(par->itemAt(2)->widget());
@@ -265,7 +247,6 @@ void rule_editing::add_cond()
         n.p.type = EQUAL;
     }
     r.pre += n;
-    //Добавляем
 }
 void rule_editing::change_cond_val(int new_val)
 {
@@ -297,7 +278,6 @@ void rule_editing::add_instr()
     parameter n;
     n.index = instr->property("Par_index").value<int>();
     n.type = 0;
-    //Параметры
 
     instr->setProperty("Instr_index", QVariant(r.operation.size()));
 
@@ -322,7 +302,6 @@ void rule_editing::add_instr()
         QComboBox *type = qobject_cast<QComboBox*>(par->itemAt(2)->widget());
         connect(type, SIGNAL(currentIndexChanged(int)), SLOT(change_op_mode(int)));
         type->setEnabled(1);
-        //Включаем выбор
     }
     else {
         QCheckBox* l = qobject_cast<QCheckBox*>(par->itemAt(2)->widget());

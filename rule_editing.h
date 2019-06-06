@@ -12,8 +12,6 @@
 #include <QSpinBox>
 #include <QCheckBox>
 
-//Интерфейс редактирования правил
-
 namespace Ui {
 class rule_editing;
 }

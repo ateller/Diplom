@@ -16,23 +16,16 @@
 #define WINDOW 3
 
 #define HUMIDITY 1;
-//У нас уже есть температура, а влажности нету
-
-//Типы и id сенсоров всегда отрицательные, эффекторов - положительные
-
-//Объявлена всякая абстрактность для девайсов
 
 class device;
 
 union val { int i; float f; bool b;};
 
 struct parameter {int index; val value; int type;};
-//Имя и значение в текстовом виде
 
 struct par_class {int index; QList<int> classes;};
 
 class device : public QObject
-//Устройства. Сенсоры, эффекторы
 {
     Q_OBJECT
 public:

@@ -5,8 +5,6 @@
 #include <QList>
 #include "knowledge.h"
 
-//Это штука, которая всем управляет, у нее есть база данных и функции петли
-
 #define NUM_OF_CLASSES 1
 
 struct to_execute {int id; QList<parameter> operation; int timer; QList<post_cond> post; int r_id;};
@@ -25,7 +23,6 @@ struct generated_rule{int id; rule r; post_state post; int delta;};
 
 class mape_loop : public QObject
 {
-//Петля
     Q_OBJECT
 public:
     mape_loop();

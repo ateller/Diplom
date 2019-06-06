@@ -52,13 +52,10 @@ control::~control()
 void control::add_record()
 {
     int type = sender()->property("comp_type").value<int>();
-    //Получаем тип
 
     device* temp;
     temp = new_device(type);
     temp->name = qobject_cast<QAction*>(sender())->text() + " " + QString::number(manager.k->id_counter);
-
-    //Создаем объект и даем ему имя
 
     add_dev_widget(temp, manager.add_device(temp));
 }
@@ -66,39 +63,29 @@ void control::add_record()
 void control::add_dev_widget(device* temp, int id)
 {   
     QWidget* dev_widget = new QWidget();
-    //И виджет
 
     QVBoxLayout *vertical = new QVBoxLayout;
     dev_widget->setLayout(vertical);
-    //Лейаут для виджета
 
     QHBoxLayout *check_and_name = new QHBoxLayout;
-    //Специальный лэйаут для имени и галочки
 
     QLineEdit *name = new QLineEdit(temp->name);
     connect(name, SIGNAL(textEdited(QString)), SLOT(edit_name(QString)));
-    //Строка с именем компонента, слот для редактирования
 
     QCheckBox *c = new QCheckBox("Broken");
     connect(c, SIGNAL(toggled(bool)), temp, SLOT(set_broken(bool)));
-    //Галочка, чтобы ломать компонент
 
     check_and_name->addWidget(name);
     check_and_name->addWidget(c);
-    //Добавляем в строку имя и галочку
 
     vertical->addLayout(check_and_name);
-    //Строку в виджет
 
     QHBoxLayout *buttons = new QHBoxLayout;
-    //Специальный лэйаут для кнопок
 
     QPushButton* a = new QPushButton("Parameters");
     a->setCheckable(1);
-    //Можно нажать и отжать
 
     buttons->addWidget(a);
-    //Добавляем одну кнопку
 
     QPushButton* s = nullptr;
 
@@ -118,18 +105,15 @@ void control::add_dev_widget(device* temp, int id)
     dev_widget->setProperty("id", QVariant(id));
 
     vertical->addLayout(buttons);
-    //Добавляем в лейаут кнопки
 
     QWidget* parameters_widget = new QWidget;
     parameters_widget->hide();
     QVBoxLayout* form = new QVBoxLayout;
     form->setContentsMargins(2,0,1,0);
     parameters_widget->setLayout(form);
-    //Добавляем параметры
 
     QList<parameter> parameters = temp->get_list();
     QList<QString> names = temp->get_names();
-    //Получаем от устройства список параметров и значений
 
     connect(a, SIGNAL(toggled(bool)), parameters_widget, SLOT(setVisible(bool)));
 
@@ -185,79 +169,52 @@ void control::add_dev_widget(device* temp, int id)
     QVBoxLayout* l = qobject_cast<QVBoxLayout*>(ui->componentsListScrollArea->layout());
     l->setStretch(l->count() - 1, 0);
     l->addWidget(dev_widget, 1, Qt::AlignTop);
-    //Чтобы было красиво
 }
-
-/*void control::control_device(QString new_val)
-{
-    QLineEdit *par = qobject_cast<QLineEdit*>(sender());
-    //Строка, которую меняют
-    QWidget *comp = qobject_cast<QWidget*>(par->parentWidget()->parentWidget());
-    //Девайс виджет, который это вызвал
-    int i = par->property("Par_index").value<int>();
-    //Номер параметра, указанный в динамическом свойстве строки
-    device* to_control = manager.k->get_device(comp->property("id").value<int>());
-    //Найти девайс по id
-    to_control->to_be_controlled(i,new_val);
-    //Поихали
-}*/
 
 void control::control_device(int new_val)
 {
     QSpinBox *par = qobject_cast<QSpinBox*>(sender());
     QWidget *comp = qobject_cast<QWidget*>(par->parentWidget()->parentWidget());
-    //Девайс виджет, который это вызвал
+
     int i = par->property("Par_index").value<int>();
-    //Номер параметра, указанный в динамическом свойстве
     device* to_control = manager.k->get_device(comp->property("id").value<int>());
-    //Найти девайс по id
     val v;
     v.i = new_val;
     to_control->to_be_controlled(i, v);
-    //Поихали
 }
 
 void control::control_device(double new_val)
 {
     QDoubleSpinBox *par = qobject_cast<QDoubleSpinBox*>(sender());
     QWidget *comp = qobject_cast<QWidget*>(par->parentWidget()->parentWidget());
-    //Девайс виджет, который это вызвал
+
     int i = par->property("Par_index").value<int>();
-    //Номер параметра, указанный в динамическом свойстве
     device* to_control = manager.k->get_device(comp->property("id").value<int>());
-    //Найти девайс по id
     val v;
     v.f = static_cast<float> (new_val);
     to_control->to_be_controlled(i,v);
-    //Поихали
 }
 
 void control::control_device(bool new_val)
 {
     QCheckBox *par = qobject_cast<QCheckBox*>(sender());
     QWidget *comp = qobject_cast<QWidget*>(par->parentWidget()->parentWidget());
-    //Девайс виджет, который это вызвал
+
     int i = par->property("Par_index").value<int>();
-    //Номер параметра, указанный в динамическом свойстве
     device* to_control = manager.k->get_device(comp->property("id").value<int>());
-    //Найти девайс по id
     val v;
     v.b = new_val;
     to_control->to_be_controlled(i,v);
-    //Поихали
 }
 
 void control::edit_name(QString new_name)
 {
     QWidget* comp = qobject_cast<QWidget*>(qobject_cast<QLineEdit*>(sender())->parentWidget());
-    //Получаем виджет компонента
 
     int id = comp->property("id").value<int>();
-    //Запоминаем его id
 
     device* component = manager.k->get_device(comp->property("id").value<int>());
     component->name = new_name;
-    //Сменили имя объекту
 
     int i;
     QWidget *area;
@@ -268,40 +225,20 @@ void control::edit_name(QString new_name)
 
          area = ui->env_area;
     }
-    //Узнали, что за компонент
     i = manager.indexof(id);
-    //Узнали его индекс
 
     QGroupBox *l = qobject_cast<QGroupBox*>(area->layout()->itemAt(i)->widget());
-    //Нашли его бокс с целью
 
     l->setTitle(new_name);
-    //Поменяли боксу имя
-
-    /*
-    size = l->count();
-    //Узнали, сколько параметров
-    for(i = 0; i < size; i++)
-    {
-        QString text;
-        QLabel *to_replace;
-        to_replace = qobject_cast<QLabel*>(l->itemAt(i)->widget()->layout()->itemAt(0)->widget());
-        text = to_replace->text();
-        to_replace->setText(new_name + ":" + text.split(':')[1]);
-    }
-    */
-    //И каждому сменили имя
 }
 
 void control::upd_goal(int id)
 {
     QList <goal> to_upd;
-    //Запись для добавления
     QList <QString> names;
     QList <int> types;
     QString name;
     QVBoxLayout *l;
-    //Лэйаут куда будем добавлять
 
     if(id > 0) {
         record r = manager.k->sys_model[manager.k->indexof(id)];
@@ -323,11 +260,9 @@ void control::upd_goal(int id)
         }
         l = qobject_cast<QVBoxLayout*>(ui->env_area->layout());
     }
-    //Забираем нужную запись и лэйаут
 
     QGroupBox *w = new QGroupBox(name);
     w->setProperty("id", QVariant(id));
-    //Создаем групбокс
 
     l->setStretch(l->count() - 1, 0);
     l->addWidget(w,1,Qt::AlignTop);
@@ -335,16 +270,13 @@ void control::upd_goal(int id)
     l = new QVBoxLayout;
     l->setContentsMargins(5,5,5,5);
     w->setLayout(l);
-    //В нужный лейаут добавляем бокс и меняем л на его лэйаут
 
     int i = 0;
     foreach(goal temp, to_upd)
     {
         QGridLayout *par = new QGridLayout;
-        //Лейаут под параметр
 
         par->addWidget((new QLabel(names[temp.index])),0,0,1,2);
-        //Его имя
 
         if(types[temp.index] == ON_OFF) {
             QCheckBox* val = createCheckBox(names[temp.index], i, 0);
@@ -379,22 +311,12 @@ void control::upd_goal(int id)
         connect(c, SIGNAL(toggled(bool)), SLOT(goal_ignore(bool)));
         c->setProperty("Par_index", QVariant(i));
         par->addWidget(c, 1, 1, 1, 1);
-        //Чекбокс
 
         i++;
         l->addLayout(par);
     }
-    //Для каждого параметра создаем горизонтальный лэйаут с названием, значением и галочкой
-
     qobject_cast<QMenuBar*>(layout()->menuBar())->actions()[3]->setEnabled(1);
 }
-
-/*void control::change_goal(QString val)
-{
-    int i = sender()->property("Par_index").value<int>();
-    int id = qobject_cast<QLineEdit*>(sender())->parentWidget()->property("id").value<int>();
-    manager.k->update_goal(id,i,val);
-}*/
 
 void control::change_goal(int value)
 {
@@ -435,15 +357,12 @@ void control::add_rule()
     QWidget* dev_w = qobject_cast<QPushButton*>(sender())->parentWidget();
     int id = dev_w->property("id").value<int>();
     effector* temp = qobject_cast<effector*>(manager.k->get_device(id));
-    //Находим id и запоминаем девайс
 
     int index = manager.indexof(id);
-    //Узнаем его индекс
 
     rule_editing *edit = new rule_editing;    
     edit->init(manager.k, index);
     edit->show();
-    //Открываем окно
 
     if(edit->exec() == QDialog::Accepted)
     {
@@ -452,16 +371,13 @@ void control::add_rule()
             temp->add_rule(r, false);
 
             dev_w->layout()->itemAt(1)->layout()->itemAt(2)->widget()->setEnabled(1);
-            //Включаем кнопку показа списка правил
 
             QVBoxLayout* rules_layout = qobject_cast<QVBoxLayout*>(dev_w->layout()->itemAt(3)->widget()->layout());
             int i = temp->ruleset.size() - 1;
-            //Индекс правила
 
             add_rule_widget(rules_layout, i);
 
         }
-        //Добавляем
     }
     delete edit;
 }
@@ -471,20 +387,16 @@ void control::add_rule()
 void control::add_rule_widget(QVBoxLayout* rules_layout, int i)
 {
     QHBoxLayout* rule = new QHBoxLayout;
-    //Лэйаут под правило
 
     rule->addWidget(new QLabel ("Rule " + QString::number(i)), 0, Qt::AlignHCenter);
-    //Название правила
 
     QPushButton* show = new QPushButton ("Show");
     show->setProperty("Rule_index", QVariant(i));
     connect(show, SIGNAL(clicked()), SLOT(show_rule()));
-    //Кнопка показа правила
 
     QPushButton* delet = new QPushButton ("Delete");
     delet->setProperty("Rule_index", QVariant(i));
     connect(delet, SIGNAL(clicked()), SLOT(delete_rule()));
-    //Кнопка удаления правила
 
     rule->addWidget(show);
     rule->addWidget(delet);
@@ -498,8 +410,6 @@ void control::show_rule()
 
     int i = sender()->property("Rule_index").value<int>();
     rule r = temp->ruleset[i];
-    //Эффектор и его правило
-
 
     QString text;
 
@@ -586,7 +496,6 @@ void control::add_gen_rule(int id, int i)
             QVBoxLayout* rules_layout = qobject_cast<QVBoxLayout*>(w->layout()->itemAt(3)->widget()->layout());
             add_rule_widget(rules_layout, i);
             w->layout()->itemAt(1)->layout()->itemAt(2)->widget()->setEnabled(1);
-            //Включаем кнопку показа списка правил
             break;
         }
     }

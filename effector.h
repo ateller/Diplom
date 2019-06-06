@@ -5,8 +5,6 @@
 #include <rules.h>
 #include <math.h>
 
- //Абстрактность и конкретность для эффекторов
-
 class effector : public device
 {
 Q_OBJECT
@@ -34,11 +32,8 @@ public:
     result effect();
 private:
     int flow_t;
-    //На сколько градусов поток воздуха теплее, чем в комнате
     int wind_power;
-    //Скорость вращения вентилятора
     float vel;
-    //Максимальная скорость потока воздуха
 };
 
 class window : public effector
@@ -57,13 +52,9 @@ public:
     result effect();
 private:
     float size;
-    //Площадь окна в кв.метрах
     int percent_opened;
-    //На сколько процентов открыто
     float h;
-    //Высота от пола, на которой находится окно
     float mu;
-    //Коэффициент расхода воздуха
 };
 
 #endif // EFFECTOR_H

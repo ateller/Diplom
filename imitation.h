@@ -8,8 +8,6 @@
 #include <QDoubleSpinBox>
 #include <math.h>
 
-//По идее должна считать физику и моделировать состояние системы на следующем шаге
-
 class imitation: public QObject
 {
 Q_OBJECT

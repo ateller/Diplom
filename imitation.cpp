@@ -19,14 +19,6 @@ imitation::imitation()
     connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
     l->addRow("Temperature", s);
 
-    /*
-    s = new QDoubleSpinBox;
-    s->setValue(static_cast<double>(humidity));
-    s->setProperty("index", QVariant(1));
-    connect(s, SIGNAL(editingFinished()), this, SLOT(change_val()));
-    l->addRow("Humidity", s);
-    */
-
     s = new QDoubleSpinBox;
     s->setValue(static_cast<double>(out_t));
     s->setSuffix(" degrees");
@@ -60,15 +52,11 @@ void imitation::effect(effector* eff)
         {
             double out_p = 353.0/(273.0 + out_t),
                     in_p = 353.0/(273.0 + temperature);
-            //Считаем плотности
 
             double out_ro = 9.81 * out_p * (air_h - static_cast<double> (e.h)),
                     in_ro = 9.81 * in_p * (air_h - static_cast<double> (e.h));
 
-            //Считаем давления
-
             double delta_p = out_ro - in_ro;
-            //Разность давлений
 
             double g;
 
@@ -80,19 +68,11 @@ void imitation::effect(effector* eff)
             {
                 g = - e.f * sqrt(2 * (- delta_p) * in_p);
             }
-            //Расход кг в сек. Положительный - воздух втекает, отрицательный - вытекает
 
             double m = v * in_p;
-            //Масса воздуха в помещении
-
             m += g;
-            //Как поменялась за секунду
-
             in_p = m/v;
-            //Как поменялась плотность
-
             temperature = 353/in_p - 273;
-            //Предполагаем, что все мгновенно смешивается и температура так же зависит от плотности
         }
     }
     else if(eff->get_type() == HEATER)
@@ -146,7 +126,6 @@ void imitation::upd()
     QFormLayout* l = qobject_cast<QFormLayout*> (i_control->layout());
 
     qobject_cast<QDoubleSpinBox*>(l->itemAt(0,QFormLayout::FieldRole)->widget())->setValue(temperature);
-    //qobject_cast<QDoubleSpinBox*>(l->itemAt(1,QFormLayout::FieldRole)->widget())->setValue(humidity);
     qobject_cast<QDoubleSpinBox*>(l->itemAt(1,QFormLayout::FieldRole)->widget())->setValue(out_t);
     qobject_cast<QDoubleSpinBox*>(l->itemAt(2,QFormLayout::FieldRole)->widget())->setValue(v);
     qobject_cast<QDoubleSpinBox*>(l->itemAt(3,QFormLayout::FieldRole)->widget())->setValue(air_h);

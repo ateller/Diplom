@@ -228,7 +228,6 @@ void knowledge::finish_execution(executing_rule e)
             else
                 apply_post(&beg_state, p.post, p.time - e.start_loop, loops_counter - e.start_loop, true);
         }
-        //Применили к стейту все постусловия
 
         QList<post_cond> real_post = create_real_post(&beg_state, loops_counter - e.start_loop);
 
@@ -808,7 +807,6 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
         parameter par = r.dev.par[o.index];
         if (o.type == ASSIGN)
         {
-            //Если ассигн, то считаем разницу между тем, что есть сейчас и что будет
             switch (par.type) {
             case TEMPERATURE:
             case PERCENT:
@@ -841,8 +839,6 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
         }
         else {
             p.p = o;
-            //Дикриз инкриз остался тот же
-            //Еще нам нужна дельта со знаком
             if (o.type == DECREASE)
             {
                 switch (par.type) {
@@ -877,7 +873,6 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
             }
         }
         post.post.append(p);
-        //Добавили в постусловие
 
         if(p.p.type != SAME)
         {
@@ -889,16 +884,12 @@ post_state knowledge::create_postcond(int id, QList<parameter> operation)
                     classes.append(cl);
                 }
             }
-            //Запомнили классы параметров из операции, чтобы по нима потом смотреть
 
             changes.append(par);
-            //Здесь индекс, тип, значение со знаком
-
             i++;
         }
 
     }
-    //Сначала записали в пост изменения самих параметров
 
     post.time = 1;
     foreach(record rec, env_model)
@@ -1058,29 +1049,23 @@ void knowledge::apply_post(QList<dev_parameters> *state, QList<post_cond> post, 
                             if(!after)
                             {
                                 t = p.time - time_before;
-                                //Время, которое занимает полное изменение в пост минус время, прошедшее с
-                                //начала правила до момента, в котором происходит наш стейт
                             }
                             else
                             {
                                 t = time - time_before;
-                                //Время, которое занимает стейт минус время с начала стейта до начала правила
                             }
                             if(t > 0)
                             {
                                 if(!after)
                                 {
                                     if(t > time) t = time;
-                                    //Что больше - пересечение или период стейта
                                 }
                                 else
                                 {
                                     if(t > p.time) t = p.time;
-                                    //Что больше - пересечение или период поста
                                 }
 
                                 double k = static_cast<double>(t)/p.time;
-                                //От времени зависит действие
 
                                 if(p.p.type == INCREASE){
                                     switch ((*i).type) {
@@ -1386,39 +1371,28 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         }
     }
     QList<history_value>::iterator i = dep.begin();
-    //Ставим итератор в первое изменение
     QList<history_value>::iterator inf = infl.begin() + 1;
-    //И влияющего тоже
     QList<weighed_rel> relations;
 
     for(;inf != infl.end(); inf++)
     {
         history_value v = *inf;
         int loop = v.cycle_number;
-        //Находим, где было очередное изменение
         for(; i < (dep.end() - 1); i++)
         {
             if((*(i + 1)).cycle_number > loop) break;
         }
         if (i == (dep.end() - 1)) break;
-        //Если дошли до конца истории, заканчиваем
 
         if((*i).cycle_number > loop) continue;
-        //Это значит, история зависимого началась позже истории влияющего, надо проехать вперед
 
         if(is_peace(dep.begin(), i, loop - (*i).cycle_number ,dep_type) == false) continue;
-        //Если изменение случилось не в покое, не подходит
-        //Покой - не более чем одно изменение на 100 циклов
 
         QList<history_value>::iterator j = i + 2;
-        //Итое в покое, i + 1 может быть как угодно, а на j изменение должно было отразиться.
         for(;j != dep.end(); j++) if(is_peace(dep.begin(), j, 0, dep_type)) break;
-        //Нашли следующий период покоя после возмущения
         if(j == dep.end())
         {
             if((loops_counter - (*(j-1)).cycle_number) < 100) break;
-            //Если дошли до конца, но последнее изменение было достаточно давно, есть все основания
-            //предположить, что это покой. А если нет, то досвидания
         }
 
         int loop_end = (*(j-1)).cycle_number;
@@ -1436,8 +1410,6 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
             }
         }
         if(interrupted) continue;
-        //Если во время активного периода менялся кто-то еще, этот период нам не нужон
-        //И если у нас в итоге остался период, мы кладем его к другим нормальным периодам
 
         val d_d, d_i;
         d_d = subtract((*i).value, (*(j-1)).value, dep_type);
@@ -1446,7 +1418,6 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
     }
 
     if(relations.isEmpty()) return nullptr;
-    //Ничего не нашли
 
     int sum = 0, count = 0;
     double sum_d = 0, sum_i = 0;
@@ -1458,7 +1429,6 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
         count+=r.w;
     }
     if(count == 0) return nullptr;
-    //Опять ничего не нашли
 
     relation* res = new relation;
     res->time = sum/count;
@@ -1470,7 +1440,6 @@ relation *knowledge::correlate(QList<history_value> dep, int dep_type, int id, i
 bool knowledge::is_peace(QList<history_value>::iterator beg, QList<history_value>::iterator i, int add_time, int type)
 {
     if(i == beg) return true;
-    //Если изменение произошло сразу после старта, оно в покое
 
     int len = (*i).cycle_number - (*(i-1)).cycle_number + add_time;
 
@@ -1502,7 +1471,6 @@ weighed_rel knowledge::norm_rel(int start, int fin, val d_d, val d_i, int type_d
         k = calc_k(d_d, type_d, must);
         rel.r.d1 = must;
         rel.r.d2 = apply_k(k, type_i, d_i);
-        //Равняемся на зависимого
     }
     else
     {
@@ -1568,9 +1536,7 @@ val knowledge::subtract(val what, val from, int type)
         break;
     case ON_OFF:
         if(!what.b && from.b) res.b = true;
-        //Увеличилось
         else res.b = false;
-        //Уменьшилось
         break;
     case COEFF:
     case F_SIZE:
@@ -1681,9 +1647,7 @@ double knowledge::add_val(val what, int weight, int type)
         break;
     case ON_OFF:
         if(what.b) res = 1.0 * weight;
-        //Увеличилось
         else res = -1.0 * weight;
-        //Уменьшилось
         break;
     case COEFF:
     case F_SIZE:

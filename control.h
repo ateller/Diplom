@@ -15,8 +15,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-//Это интерфейс управления симуляцией. На нем все держится
-
 namespace Ui {
 class control;
 }
@@ -32,8 +30,8 @@ public:
 private:
     Ui::control *ui;
     Widget w;
-    mape_loop manager; //Петля. Понятно
-    imitation i; //Имитация. Понятно
+    mape_loop manager;
+    imitation i;
     QString file_path;
 
     void add_dev_widget(device*, int id);
@@ -45,8 +43,6 @@ private slots:
     void add_record();
     void edit_name(QString);
     void upd_goal(int);
-    //void change_goal(QString);
-    //void control_device(QString);
     void add_rule();
     void goal_ignore(bool);
     void loop(int n);

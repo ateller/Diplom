@@ -66,11 +66,8 @@ void mape_loop::analysis()
         if ((*i).timer == 0)
         {
             executing_rule ended = *i;
-            //Скопировали правило
             i = k->exec_rules.erase(i);
-            //Удалили тот, на котором стояли
             k->finish_execution(ended);
-            //Финишнули тот
         }
         else
         {
@@ -86,7 +83,6 @@ void mape_loop::plan()
 {
     ex_plan.clear();
     if(dist <= tolerance) return;
-    //Проверяем дистанцию
 
     QList<class_list> classes;
     applicable_rule applicable;
@@ -124,7 +120,6 @@ void mape_loop::plan()
             i++;
         }
     }
-    //Собрали списки
 
     for(int i = 0; i < NUM_OF_CLASSES; i++)
     {
@@ -142,7 +137,6 @@ void mape_loop::plan()
         temp = classes.begin() + min;
 
         if((*temp).delta == 0) break;
-        //Если дошли до нулевых дельт, делать нечего
         applicable.delta = -1;
         QList<class_list_el>::iterator dev = (*temp).list.begin();
         for(;dev != (*temp).list.end(); dev++)
@@ -182,7 +176,6 @@ void mape_loop::plan()
                     if(add == false) break;
                 }
                 if (add == false) continue;
-                //Проверили по условиям
 
                 foreach(parameter temp_o, (*r).operation)
                 {
@@ -202,10 +195,8 @@ void mape_loop::plan()
                     }
                     add = check_par((*dev).dev.id, temp_o);
                     if(add == false) break;
-                    //Проверяем, не используется ли где
                 }
                 if (add == false) continue;
-                //Проверили по операции
 
                post_state post = k->create_postcond((*dev).dev.id, (*r).operation);
                int delta = prognose_distance(post.post, k->max_time(post.time), ex_plan);
@@ -521,16 +512,12 @@ QList<splited> mape_loop::split(record r)
         t.el.dev.id = r.dev.id;
         list.append(t);
     }
-    //Обнуляем дельты и пишем id
 
-    foreach(par_class temp, r.classes)//Для каждого параметра, имеющего класс
+    foreach(par_class temp, r.classes)
     {
-
         parameter temp_p = r.dev.par[temp.index];
-        //Берем его запись
         if(r.dev.id > 0)
             if(check_par(r.dev.id, temp_p) == false) continue;
-        //Если это параметр эффектора и он уже используется в правиле, он нам не нужен
 
         goal temp_g;
         foreach(temp_g, r.goal_model)
@@ -540,7 +527,6 @@ QList<splited> mape_loop::split(record r)
                 break;
             }
         }
-        //Ищем его цель
         int delta;
         if (temp_g.not_care == true)
         {
@@ -553,10 +539,8 @@ QList<splited> mape_loop::split(record r)
         if(r.dev.id < 0)
             if (delta == 0)
                 continue;
-        //Сенсоры с нулевой дельтой не нужны
 
         QList<history_value> temp_hv;
-        //Берем его историю
         foreach(history temp_h, r.histories)
         {
             if(temp_h.index == temp.index)
@@ -566,14 +550,11 @@ QList<splited> mape_loop::split(record r)
             }
         }
 
-        foreach(int i, temp.classes)//Для каждого класса этого параметра
+        foreach(int i, temp.classes)
         {
             list[i].el.dev.par.append(temp_p);
-            //Его запись
             list[i].el.hist.append(temp_hv);
-            //Его историю
             list[i].el.deltas.append(delta);
-            //Его дельту
             list[i].delta += delta;
         }
     }
@@ -582,7 +563,6 @@ QList<splited> mape_loop::split(record r)
 }
 
 bool mape_loop::uses(int id_1, QList<parameter> operation, int id_2, parameter p)
-//Возвращает true, если не использует
 {
     if(id_1 != id_2) return false;
 
@@ -610,11 +590,8 @@ bool mape_loop::check_par(int id, parameter p)
 void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
 {
     (*r).post.clear();
-    //Последствий не будет
     (*r).timer = 10;
-    //Чтобы нельзя было трогать эти параметры пока (дадим шанс скрафтить больше правил)
     (*r).interrupted = true;
-    //Не проверять в конце и не применять пост в прогнозах
     record *rec = &k->sys_model[k->indexof((*r).id)];
     QList<rule> *set = &qobject_cast<effector*>(rec->pointer)->ruleset;
     QList<rule>::iterator f = set->begin();
@@ -626,7 +603,6 @@ void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
             (*f).failure_rate += 0.35;
         }
     }
-    //Поменяли период и добавили штраф в самом правиле
     foreach(parameter op, (*r).operation)
     {
         foreach(history h, rec->histories)
@@ -640,7 +616,6 @@ void mape_loop::interrupt_executing(QList<executing_rule>::iterator r)
             }
         }
     }
-    //Откатили все изменения за последний цикл
 }
 
 bool mape_loop::did_executed(QList<parameter> *par, QList<parameter> op, QList<history> *h)

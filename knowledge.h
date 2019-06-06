@@ -6,8 +6,6 @@
 #include <effector.h>
 #include <QFile>
 
-//База данных. Модель s, модель d. Для каждого реального параметра целевое значение
-
 #define PEACE_TRESHOLD 0.01
 
 struct dev_parameters{int id; QList<parameter> par;};
